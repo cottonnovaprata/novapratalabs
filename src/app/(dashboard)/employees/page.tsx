@@ -17,9 +17,13 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
+import { useConfirm } from "@/components/confirm-dialog-provider"
+import { useToast } from "@/components/toast-provider"
 import { EmployeeForm } from "@/components/features/employees/EmployeeForm"
 
 export default function EmployeesPage() {
+  const confirmDialog = useConfirm()
+  const { success, error: toastError } = useToast()
   const [employees, setEmployees] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
   const [searchTerm, setSearchTerm] = React.useState("")
@@ -58,6 +62,7 @@ export default function EmployeesPage() {
       if (res.ok) {
         setIsModalOpen(false)
         setEditingEmployee(null)
+        success(editingEmployee ? "Colaborador atualizado" : "Colaborador criado")
         fetchEmployees()
       } else {
         setError(result.error || "Erro ao salvar colaborador")
@@ -69,17 +74,20 @@ export default function EmployeesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Deseja realmente excluir este colaborador?")) return
+    const ok = await confirmDialog({ title: "Excluir colaborador", message: "Deseja realmente excluir este colaborador?", destructive: true })
+    if (!ok) return
     try {
       const res = await fetch(`/api/employees/${id}`, { method: "DELETE" })
       const result = await res.json()
       if (res.ok) {
+        success("Colaborador excluído")
         fetchEmployees()
       } else {
-        alert(result.error || "Erro ao excluir colaborador")
+        toastError(result.error || "Erro ao excluir colaborador")
       }
     } catch (error) {
       console.error("Error deleting employee:", error)
+      toastError("Erro ao excluir colaborador")
     }
   }
 
@@ -232,3 +240,4 @@ export default function EmployeesPage() {
     </div>
   )
 }
+

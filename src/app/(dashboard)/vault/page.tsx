@@ -21,6 +21,8 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
+import { useConfirm } from "@/components/confirm-dialog-provider"
+import { useToast } from "@/components/toast-provider"
 
 type VaultCredential = {
   id: string
@@ -61,6 +63,8 @@ function formatLastUsed(date: string | null) {
 }
 
 export default function VaultPage() {
+  const confirmDialog = useConfirm()
+  const { success, error: toastError } = useToast()
   const [stats, setStats] = React.useState<VaultStats | null>(null)
   const [credentials, setCredentials] = React.useState<VaultCredential[]>([])
   const [assets, setAssets] = React.useState<AssetOption[]>([])
@@ -182,9 +186,11 @@ export default function VaultPage() {
       setCredentialForm(initialCredentialForm)
       setEditingCredentialId(null)
       setIsModalOpen(false)
+      success(editingCredentialId ? "Credencial atualizada" : "Credencial salva")
       await fetchData()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado")
+      toastError(err instanceof Error ? err.message : "Erro inesperado")
     } finally {
       setSavingCredential(false)
     }
@@ -209,16 +215,19 @@ export default function VaultPage() {
   }
 
   async function handleDeleteCredential(id: string) {
-    if (!confirm("Deseja realmente excluir esta credencial? Essa acao nao pode ser desfeita.")) return
+    const ok = await confirmDialog({ title: "Excluir credencial", message: "Deseja realmente excluir esta credencial? Essa ação não pode ser desfeita.", destructive: true })
+    if (!ok) return
     try {
       const res = await fetch(`/api/vault/credentials/${id}`, { method: "DELETE" })
       const data = (await res.json().catch(() => ({}))) as { error?: string }
       if (!res.ok) {
         throw new Error(data.error || "Erro ao excluir credencial")
       }
+      success("Credencial excluída")
       await fetchData()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado")
+      toastError(err instanceof Error ? err.message : "Erro inesperado")
     }
   }
 

@@ -3,10 +3,15 @@
 import React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Monitor, LayoutDashboard, Box, Users, Lock, Network, PenTool, BarChart3, Settings, ChevronLeft, Search, Bell, LogOut, User, Ticket, FileText, Building2 } from "lucide-react"
+import { Monitor, LayoutDashboard, Box, Users, Lock, Network, PenTool, BarChart3, Settings, ChevronLeft, Search, LogOut, User, Ticket, FileText, Building2 } from "lucide-react"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { ToastQueueProvider } from "@/components/toast-provider"
+import { ConfirmDialogProvider } from "@/components/confirm-dialog-provider"
+import { CommandPalette } from "@/components/command-palette"
+import { NotificationBell } from "@/components/notification-bell"
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -40,7 +45,10 @@ export function DashboardLayoutClient({
   }
 
   return (
+    <ToastQueueProvider>
+    <ConfirmDialogProvider>
     <div className="flex min-h-screen" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
+      <CommandPalette />
       {/* Sidebar */}
       <aside
         className={cn(
@@ -84,39 +92,40 @@ export function DashboardLayoutClient({
         </div>
 
         <nav className="mt-6 flex flex-col gap-1.5 px-2 sm:px-3">
-          {sidebarItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs sm:text-sm font-medium transition-all duration-200 border",
-                pathname === item.href
-                  ? "text-[var(--sidebar-item-active-text)]"
-                  : "text-zinc-600 hover:text-zinc-800 border-transparent"
-              )}
-              style={pathname === item.href ? {
-                background: "var(--sidebar-item-active-bg)",
-                borderColor: "var(--sidebar-item-active-border)",
-                boxShadow: "var(--sidebar-item-active-shadow)",
-              } : {
-                background: "transparent",
-                borderColor: "transparent"
-              }}
-              onMouseEnter={(e) => {
-                if (pathname !== item.href) {
-                  e.currentTarget.style.background = "var(--sidebar-item-hover)"
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (pathname !== item.href) {
-                  e.currentTarget.style.background = "transparent"
-                }
-              }}
-            >
-              <item.icon className={cn("h-4 w-4 sm:h-5 sm:w-5 min-w-[16px] sm:min-w-[20px] flex-shrink-0 transition-all", pathname === item.href ? "opacity-100" : "opacity-60")} />
-              {!isCollapsed && <span className="whitespace-nowrap truncate">{item.label}</span>}
-            </Link>
-          ))}
+          {sidebarItems.map((item) => {
+            const active = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs sm:text-sm font-medium transition-colors duration-200",
+                  active ? "text-[var(--sidebar-item-active-text)]" : "text-zinc-600 hover:text-zinc-800"
+                )}
+                onMouseEnter={(e) => {
+                  if (!active) e.currentTarget.style.background = "var(--sidebar-item-hover)"
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) e.currentTarget.style.background = "transparent"
+                }}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="sidebar-active-pill"
+                    className="absolute inset-0 rounded-lg border"
+                    style={{
+                      background: "var(--sidebar-item-active-bg)",
+                      borderColor: "var(--sidebar-item-active-border)",
+                      boxShadow: "var(--sidebar-item-active-shadow)",
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <item.icon className={cn("relative h-4 w-4 sm:h-5 sm:w-5 min-w-[16px] sm:min-w-[20px] flex-shrink-0 transition-all", active ? "opacity-100" : "opacity-60")} />
+                {!isCollapsed && <span className="relative whitespace-nowrap truncate">{item.label}</span>}
+              </Link>
+            )
+          })}
         </nav>
 
         <div className="absolute bottom-4 left-0 w-full px-2 sm:px-3 space-y-1">
@@ -174,30 +183,25 @@ export function DashboardLayoutClient({
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: "var(--text-tertiary)" }} />
             <input
               type="text"
+              readOnly
               placeholder="Buscar (Cmd + K)"
-              className="h-9 w-full rounded-lg pl-9 pr-3 text-sm transition-all duration-200 focus:outline-none focus:ring-1 border"
+              className="h-9 w-full rounded-lg pl-9 pr-3 text-sm transition-all duration-200 focus:outline-none focus:ring-1 border cursor-pointer"
               style={{
                 background: "var(--input-bg)",
                 borderColor: "var(--input-border)",
                 color: "var(--input-text)",
               }}
+              onClick={() => (window as any).__openCommandPalette?.()}
               onFocus={(e) => {
-                e.currentTarget.style.background = "var(--input-bg-focus)"
-                e.currentTarget.style.borderColor = "var(--input-border-focus)"
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.background = "var(--input-bg)"
-                e.currentTarget.style.borderColor = "var(--input-border)"
+                e.currentTarget.blur()
+                ;(window as any).__openCommandPalette?.()
               }}
             />
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 ml-auto">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" className="relative h-9 w-9 text-zinc-400 hover:text-zinc-200">
-              <Bell className="h-4 w-4" />
-              <span className="absolute right-2 top-2 flex h-1.5 w-1.5 rounded-full bg-red-500" />
-            </Button>
+            <NotificationBell />
             <div className="h-6 w-px hidden sm:block" style={{ background: "var(--border-primary)" }} />
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="text-right hidden sm:flex flex-col gap-0.5">
@@ -217,5 +221,8 @@ export function DashboardLayoutClient({
         </div>
       </main>
     </div>
+    </ConfirmDialogProvider>
+    </ToastQueueProvider>
   )
 }
+
