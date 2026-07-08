@@ -1,0 +1,142 @@
+"use client"
+
+import React from "react"
+import { Building2, Phone, Mail, Plus, Loader2, Pencil, Trash2, RefreshCw } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Modal } from "@/components/ui/modal"
+import { SupplierForm } from "@/components/features/suppliers/SupplierForm"
+
+export default function SuppliersPage() {
+  const [suppliers, setSuppliers] = React.useState<any[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const [editingSupplier, setEditingSupplier] = React.useState<any>(null)
+
+  const fetchData = React.useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/suppliers")
+      const data = await res.json()
+      if (Array.isArray(data)) setSuppliers(data)
+    } catch (error) {
+      console.error("Error fetching suppliers:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  React.useEffect(() => { fetchData() }, [fetchData])
+
+  async function handleCreateOrUpdate(data: any) {
+    const url = editingSupplier ? `/api/suppliers/${editingSupplier.id}` : "/api/suppliers"
+    const method = editingSupplier ? "PUT" : "POST"
+    try {
+      const res = await fetch(url, {
+        method,
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+      })
+      if (res.ok) {
+        setIsModalOpen(false)
+        setEditingSupplier(null)
+        fetchData()
+      }
+    } catch (error) {
+      console.error("Error saving supplier:", error)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Deseja realmente excluir este fornecedor?")) return
+    try {
+      const res = await fetch(`/api/suppliers/${id}`, { method: "DELETE" })
+      if (res.ok) fetchData()
+    } catch (error) {
+      console.error("Error deleting supplier:", error)
+    }
+  }
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Fornecedores</h1>
+          <p className="text-muted-foreground">Contatos de suporte e contratos por tipo de serviço.</p>
+        </div>
+        <Button className="bg-primary shadow-lg shadow-primary/20" onClick={() => { setEditingSupplier(null); setIsModalOpen(true) }}>
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Fornecedor
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Lista de Fornecedores</CardTitle>
+            <CardDescription>Quem resolve cada tipo de problema.</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+            Sincronizar
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y relative min-h-[300px]">
+            {loading ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[1px]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : suppliers.length === 0 ? (
+              <div className="p-12 text-center text-muted-foreground">Nenhum fornecedor cadastrado.</div>
+            ) : (
+              suppliers.map((s) => (
+                <div key={s.id} className="p-4 hover:bg-muted/50 transition-colors flex items-center justify-between group">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-full bg-primary/10 text-primary">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-sm">{s.name}</p>
+                        <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">{s.serviceType}</Badge>
+                        {s.hasContract && (
+                          <Badge className="text-[10px] font-normal py-0 h-4 bg-emerald-500/10 text-emerald-500 border-emerald-500/20 border">
+                            Com contrato
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-3">
+                        {s.contactName && <span>{s.contactName}</span>}
+                        {s.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{s.phone}</span>}
+                        {s.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{s.email}</span>}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => { setEditingSupplier(s); setIsModalOpen(true) }}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(s.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingSupplier ? "Editar Fornecedor" : "Novo Fornecedor"}>
+        <SupplierForm
+          initialData={editingSupplier}
+          onCancel={() => setIsModalOpen(false)}
+          onSubmit={handleCreateOrUpdate}
+        />
+      </Modal>
+    </div>
+  )
+}

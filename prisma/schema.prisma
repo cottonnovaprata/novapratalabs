@@ -20,6 +20,25 @@ enum MaintenanceStatus {
   CANCELADO
 }
 
+enum TicketStatus {
+  ABERTO
+  EM_ANDAMENTO
+  AGUARDANDO_PECA
+  CONCLUIDO
+}
+
+enum TicketPriority {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum DocumentType {
+  CERTIFICADO
+  LICENCA
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -30,6 +49,8 @@ model User {
   updatedAt DateTime @updatedAt
   assets    Asset[]
   vaultAccessLogs VaultAccessLog[]
+  documents Document[]
+  tickets   Ticket[]
 
   @@map("users")
 }
@@ -68,6 +89,8 @@ model Asset {
   sector       Sector?       @relation(fields: [sectorId], references: [id])
   maintenances Maintenance[]
   vaultCredentials VaultCredential[]
+  documents    Document[]
+  tickets      Ticket[]
 
   @@map("assets")
 }
@@ -126,6 +149,70 @@ model VaultAccessLog {
   @@index([userId])
   @@index([createdAt])
   @@map("vault_access_logs")
+}
+
+model Supplier {
+  id           String   @id @default(cuid())
+  name         String
+  serviceType  String
+  contactName  String?
+  phone        String?
+  email        String?
+  hasContract  Boolean  @default(false)
+  contractEnd  DateTime?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  documents Document[]
+
+  @@map("suppliers")
+}
+
+model Document {
+  id             String       @id @default(cuid())
+  type           DocumentType
+  title          String
+  holder         String
+  validUntil     DateTime
+  responsibleId  String?
+  supplierId     String?
+  assetId        String?
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  responsible User?     @relation(fields: [responsibleId], references: [id])
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  asset       Asset?    @relation(fields: [assetId], references: [id])
+
+  @@index([validUntil])
+  @@map("documents")
+}
+
+model Ticket {
+  id             String         @id @default(cuid())
+  requesterName  String
+  sector         String
+  category       String
+  description    String
+  priority       TicketPriority @default(MEDIA)
+  status         TicketStatus   @default(ABERTO)
+  responsibleId  String?
+  assetId        String?
+  solution       String?
+  recurring      Boolean        @default(false)
+  openedAt       DateTime       @default(now())
+  closedAt       DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  responsible User?  @relation(fields: [responsibleId], references: [id])
+  asset       Asset? @relation(fields: [assetId], references: [id])
+
+  @@index([status])
+  @@index([priority])
+  @@map("tickets")
 }
 
 model NetworkSegment {

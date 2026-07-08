@@ -19,6 +19,9 @@
 - Rede: visao geral e criacao de segmentos.
 - Relatorios: indicadores, exportacao e download.
 - Cofre: listagem/criacao de credenciais e reveal por id.
+- Chamados: listagem, criacao, atualizacao e exclusao (suporte interno com categoria/prioridade/status/recorrencia).
+- Certificados/Licencas: listagem, criacao, atualizacao e exclusao, com calculo de dias para vencer.
+- Fornecedores: listagem, criacao, atualizacao e exclusao, com controle de contrato.
 
 ### Dashboard / BI
 - Cards de KPI com dados reais.
@@ -62,6 +65,12 @@
 | `/api/sectors` | GET | Sim | Sim |
 | `/api/vault/credentials` | GET, POST | Sim | Sim |
 | `/api/vault/credentials/[id]/reveal` | POST | Sim | Sim |
+| `/api/tickets` | GET, POST | Sim | Sim |
+| `/api/tickets/[id]` | PUT, DELETE | Sim | Sim |
+| `/api/documents` | GET, POST | Sim | Sim |
+| `/api/documents/[id]` | PUT, DELETE | Sim | Sim |
+| `/api/suppliers` | GET, POST | Sim | Sim |
+| `/api/suppliers/[id]` | PUT, DELETE | Sim | Sim |
 
 ## 5) Pontos de atencao (sem quebra funcional)
 - Pode ocorrer `503` transitorio quando o banco demora para responder (comum em ambiente local/cloud cold start).

@@ -3,7 +3,7 @@
 import React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Monitor, LayoutDashboard, Box, Users, Lock, Network, PenTool, BarChart3, Settings, ChevronLeft, Search, Bell, LogOut, User } from "lucide-react"
+import { Monitor, LayoutDashboard, Box, Users, Lock, Network, PenTool, BarChart3, Settings, ChevronLeft, Search, Bell, LogOut, User, Ticket, FileText, Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -15,6 +15,9 @@ const sidebarItems = [
   { icon: Lock, label: "Cofre", href: "/vault" },
   { icon: Network, label: "Rede", href: "/network" },
   { icon: PenTool, label: "Manutenção", href: "/maintenances" },
+  { icon: Ticket, label: "Chamados", href: "/tickets" },
+  { icon: FileText, label: "Certificados/Licenças", href: "/documents" },
+  { icon: Building2, label: "Fornecedores", href: "/suppliers" },
   { icon: BarChart3, label: "Relatórios", href: "/reports" },
 ]
 
