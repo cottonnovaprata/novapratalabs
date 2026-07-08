@@ -19,6 +19,8 @@ import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
 import { cn } from "@/lib/utils"
 import { getSlaStatus } from "@/lib/sla"
+import { useConfirm } from "@/components/confirm-dialog-provider"
+import { useToast } from "@/components/toast-provider"
 import { TicketForm } from "@/components/features/tickets/TicketForm"
 
 const PRIORITY_STYLE: Record<string, string> = {
@@ -29,6 +31,8 @@ const PRIORITY_STYLE: Record<string, string> = {
 }
 
 export default function TicketsPage() {
+  const confirmDialog = useConfirm()
+  const { success, error: toastError } = useToast()
   const [tickets, setTickets] = React.useState<any[]>([])
   const [assets, setAssets] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -67,20 +71,31 @@ export default function TicketsPage() {
       if (res.ok) {
         setIsModalOpen(false)
         setEditingTicket(null)
+        success(editingTicket ? "Chamado atualizado" : "Chamado aberto")
         fetchData()
+      } else {
+        toastError("Erro ao salvar chamado")
       }
     } catch (error) {
       console.error("Error saving ticket:", error)
+      toastError("Erro ao salvar chamado")
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Deseja realmente excluir este chamado?")) return
+    const ok = await confirmDialog({ title: "Excluir chamado", message: "Deseja realmente excluir este chamado? Essa ação não pode ser desfeita.", destructive: true })
+    if (!ok) return
     try {
       const res = await fetch(`/api/tickets/${id}`, { method: "DELETE" })
-      if (res.ok) fetchData()
+      if (res.ok) {
+        success("Chamado excluído")
+        fetchData()
+      } else {
+        toastError("Erro ao excluir chamado")
+      }
     } catch (error) {
       console.error("Error deleting ticket:", error)
+      toastError("Erro ao excluir chamado")
     }
   }
 
@@ -255,3 +270,4 @@ export default function TicketsPage() {
     </div>
   )
 }
+

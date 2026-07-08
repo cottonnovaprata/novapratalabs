@@ -8,8 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
 import { SupplierForm } from "@/components/features/suppliers/SupplierForm"
+import { useConfirm } from "@/components/confirm-dialog-provider"
+import { useToast } from "@/components/toast-provider"
 
 export default function SuppliersPage() {
+  const confirmDialog = useConfirm()
+  const { success, error: toastError } = useToast()
   const [suppliers, setSuppliers] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
@@ -42,20 +46,31 @@ export default function SuppliersPage() {
       if (res.ok) {
         setIsModalOpen(false)
         setEditingSupplier(null)
+        success(editingSupplier ? "Fornecedor atualizado" : "Fornecedor cadastrado")
         fetchData()
+      } else {
+        toastError("Erro ao salvar fornecedor")
       }
     } catch (error) {
       console.error("Error saving supplier:", error)
+      toastError("Erro ao salvar fornecedor")
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Deseja realmente excluir este fornecedor?")) return
+    const ok = await confirmDialog({ title: "Excluir fornecedor", message: "Deseja realmente excluir este fornecedor? Essa ação não pode ser desfeita.", destructive: true })
+    if (!ok) return
     try {
       const res = await fetch(`/api/suppliers/${id}`, { method: "DELETE" })
-      if (res.ok) fetchData()
+      if (res.ok) {
+        success("Fornecedor excluído")
+        fetchData()
+      } else {
+        toastError("Erro ao excluir fornecedor")
+      }
     } catch (error) {
       console.error("Error deleting supplier:", error)
+      toastError("Erro ao excluir fornecedor")
     }
   }
 
@@ -140,3 +155,4 @@ export default function SuppliersPage() {
     </div>
   )
 }
+

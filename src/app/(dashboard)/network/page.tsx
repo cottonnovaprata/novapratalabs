@@ -20,6 +20,8 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
+import { useConfirm } from "@/components/confirm-dialog-provider"
+import { useToast } from "@/components/toast-provider"
 
 type NetworkSegment = {
   id: string
@@ -54,6 +56,8 @@ const initialSegmentForm = {
 }
 
 export default function NetworkPage() {
+  const confirmDialog = useConfirm()
+  const { success, error: toastError } = useToast()
   const [overview, setOverview] = React.useState<NetworkOverview | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
@@ -114,9 +118,11 @@ export default function NetworkPage() {
       setSegmentForm(initialSegmentForm)
       setEditingSegmentId(null)
       setIsModalOpen(false)
+      success(editingSegmentId ? "VLAN atualizada" : "VLAN criada")
       await fetchOverview()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado")
+      toastError(err instanceof Error ? err.message : "Erro inesperado")
     } finally {
       setSavingSegment(false)
     }
@@ -141,16 +147,19 @@ export default function NetworkPage() {
   }
 
   async function handleDeleteSegment(id: string) {
-    if (!confirm("Deseja realmente excluir esta VLAN/segmento?")) return
+    const ok = await confirmDialog({ title: "Excluir VLAN", message: "Deseja realmente excluir esta VLAN/segmento?", destructive: true })
+    if (!ok) return
     try {
       const res = await fetch(`/api/network/segments/${id}`, { method: "DELETE" })
       const data = (await res.json().catch(() => ({}))) as { error?: string }
       if (!res.ok) {
         throw new Error(data.error || "Erro ao excluir segmento")
       }
+      success("VLAN excluída")
       await fetchOverview()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado")
+      toastError(err instanceof Error ? err.message : "Erro inesperado")
     }
   }
 

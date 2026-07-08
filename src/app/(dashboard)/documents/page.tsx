@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
 import { cn } from "@/lib/utils"
 import { DocumentForm } from "@/components/features/documents/DocumentForm"
+import { useConfirm } from "@/components/confirm-dialog-provider"
+import { useToast } from "@/components/toast-provider"
 
 function daysUntil(date: string) {
   const diff = new Date(date).getTime() - Date.now()
@@ -16,6 +18,8 @@ function daysUntil(date: string) {
 }
 
 export default function DocumentsPage() {
+  const confirmDialog = useConfirm()
+  const { success, error: toastError } = useToast()
   const [documents, setDocuments] = React.useState<any[]>([])
   const [suppliers, setSuppliers] = React.useState<any[]>([])
   const [assets, setAssets] = React.useState<any[]>([])
@@ -58,20 +62,31 @@ export default function DocumentsPage() {
       if (res.ok) {
         setIsModalOpen(false)
         setEditingDoc(null)
+        success(editingDoc ? "Registro atualizado" : "Registro cadastrado")
         fetchData()
+      } else {
+        toastError("Erro ao salvar registro")
       }
     } catch (error) {
       console.error("Error saving document:", error)
+      toastError("Erro ao salvar registro")
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Deseja realmente excluir este registro?")) return
+    const ok = await confirmDialog({ title: "Excluir certificado/licença", message: "Deseja realmente excluir este registro? Essa ação não pode ser desfeita.", destructive: true })
+    if (!ok) return
     try {
       const res = await fetch(`/api/documents/${id}`, { method: "DELETE" })
-      if (res.ok) fetchData()
+      if (res.ok) {
+        success("Registro excluído")
+        fetchData()
+      } else {
+        toastError("Erro ao excluir registro")
+      }
     } catch (error) {
       console.error("Error deleting document:", error)
+      toastError("Erro ao excluir registro")
     }
   }
 
@@ -189,3 +204,4 @@ export default function DocumentsPage() {
     </div>
   )
 }
+

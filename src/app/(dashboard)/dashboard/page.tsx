@@ -28,6 +28,7 @@ import {
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { AnimatedCounter } from "@/components/ui/animated-counter"
 import { cn } from "@/lib/utils"
 
 type AssetStatusItem = {
@@ -167,7 +168,7 @@ export default function DashboardPage() {
                     className="text-4xl sm:text-5xl font-bold mt-4"
                     style={{ letterSpacing: "-0.03em", color: "var(--text-primary)" }}
                   >
-                    {stat.value}
+                    <AnimatedCounter value={stat.value} />
                   </div>
                 </div>
                 <div className={cn("p-3 rounded-xl flex-shrink-0", stat.bg)}>
@@ -197,7 +198,7 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats?.sla?.slaWithin ?? 0}</div>
+              <div className="text-3xl font-bold"><AnimatedCounter value={stats?.sla?.slaWithin ?? 0} /></div>
               <p className="text-xs text-muted-foreground mt-1">Chamados no prazo do SLA</p>
             </CardContent>
           </Card>
@@ -208,7 +209,7 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats?.sla?.slaBreached ?? 0}</div>
+              <div className="text-3xl font-bold"><AnimatedCounter value={stats?.sla?.slaBreached ?? 0} /></div>
               <p className="text-xs text-muted-foreground mt-1">Precisam de atenção imediata</p>
             </CardContent>
           </Card>
@@ -373,3 +374,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+
