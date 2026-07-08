@@ -20,6 +20,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-signal: var(--signal);
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -32,7 +33,7 @@
   --card-foreground: #020617;
   --popover: #ffffff;
   --popover-foreground: #020617;
-  --primary: #2563eb;
+  --primary: #4f46e5;
   --primary-foreground: #f8fafc;
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
@@ -44,8 +45,10 @@
   --destructive-foreground: #f8fafc;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #2563eb;
+  --ring: #4f46e5;
   --radius: 0.75rem;
+  --signal: #0891b2;
+  --signal-bg: rgba(8, 145, 178, 0.12);
 }
 
 .dark {
@@ -55,7 +58,7 @@
   --card-foreground: #f8fafc;
   --popover: #1a1d27;
   --popover-foreground: #f8fafc;
-  --primary: #3b82f6;
+  --primary: #6366f1;
   --primary-foreground: #f8fafc;
   --secondary: #1e293b;
   --secondary-foreground: #f8fafc;
@@ -67,7 +70,9 @@
   --destructive-foreground: #f8fafc;
   --border: #1e293b;
   --input: #1e293b;
-  --ring: #3b82f6;
+  --ring: #6366f1;
+  --signal: #22d3ee;
+  --signal-bg: rgba(34, 211, 238, 0.12);
 }
 
 body {
@@ -76,8 +81,14 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
+@keyframes aurora-pulse {
+  0%, 100% { transform: scale(1) translateY(0); opacity: 0.16; }
+  50% { transform: scale(1.15) translateY(20px); opacity: 0.24; }
+}
+
 @layer base {
   * {
     @apply border-border;
   }
 }
+

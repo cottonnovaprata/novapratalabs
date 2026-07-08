@@ -59,8 +59,12 @@ export function DashboardLayoutClient({
       >
         <div className="flex h-14 items-center justify-between px-3 sm:px-4">
           <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden py-2">
-            <div className="min-w-[32px] bg-primary/90 p-1.5 rounded-lg hover:bg-primary transition-colors">
+            <div className="relative min-w-[32px] bg-primary/90 p-1.5 rounded-lg hover:bg-primary transition-colors">
               <Monitor className="w-5 h-5 text-white" />
+              <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "var(--signal)" }} />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full border border-black/20" style={{ background: "var(--signal)" }} />
+              </span>
             </div>
             {!isCollapsed && (
               <span className="text-sm font-semibold tracking-tight whitespace-nowrap" style={{ color: "var(--text-primary)" }}>

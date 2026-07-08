@@ -29,6 +29,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AnimatedCounter } from "@/components/ui/animated-counter"
+import { AuroraGlow } from "@/components/aurora-glow"
 import { cn } from "@/lib/utils"
 
 type AssetStatusItem = {
@@ -139,7 +140,8 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
+    <div className="relative space-y-10 animate-in fade-in duration-500">
+      <AuroraGlow />
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex-1">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
@@ -245,15 +247,15 @@ export default function DashboardPage() {
                 <AreaChart data={stats?.sla?.ticketsByDay || []}>
                   <defs>
                     <linearGradient id="colorAbertos" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
                   <XAxis dataKey="date" fontSize={11} tickLine={false} />
                   <YAxis fontSize={11} tickLine={false} allowDecimals={false} width={28} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="abertos" stroke="#3b82f6" fill="url(#colorAbertos)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="abertos" stroke="#6366f1" fill="url(#colorAbertos)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
@@ -271,7 +273,7 @@ export default function DashboardPage() {
                   <XAxis type="number" fontSize={11} allowDecimals={false} />
                   <YAxis type="category" dataKey="category" fontSize={11} width={90} tickLine={false} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -301,7 +303,7 @@ export default function DashboardPage() {
                   >
                     <div
                       className="px-3 py-1.5 rounded-md font-semibold text-xs flex-shrink-0"
-                      style={{ background: "rgba(37, 99, 235, 0.15)", color: "#3b82f6" }}
+                      style={{ background: "rgba(99, 102, 241, 0.15)", color: "#6366f1" }}
                     >
                       {asset.tag}
                     </div>
@@ -346,7 +348,7 @@ export default function DashboardPage() {
                     </span>
                     <span
                       className="text-xs font-bold px-3 py-1.5 rounded-md"
-                      style={{ color: "#3b82f6", background: "rgba(37, 99, 235, 0.1)" }}
+                      style={{ color: "#6366f1", background: "rgba(99, 102, 241, 0.1)" }}
                     >
                       {item._count._all}
                     </span>
@@ -356,7 +358,7 @@ export default function DashboardPage() {
                       className="h-full transition-all duration-700 rounded-full"
                       style={{
                         width: `${(item._count._all / Math.max(stats.totalAssets || 1, 1)) * 100}%`,
-                        background: "linear-gradient(90deg, #3b82f6, #60a5fa)",
+                        background: "linear-gradient(90deg, #6366f1, #818cf8)",
                         boxShadow: "0 0 12px rgba(59, 130, 246, 0.3)",
                       }}
                     />
