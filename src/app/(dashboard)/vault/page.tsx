@@ -9,7 +9,8 @@ import {
   Copy,
   Search,
   Key,
-  MoreVertical,
+  Pencil,
+  Trash2,
   AlertTriangle,
   Loader2,
   Plus,
@@ -26,6 +27,7 @@ type VaultCredential = {
   title: string
   username: string
   type: string
+  assetId: string | null
   assetLabel: string
   lastUsedAt: string | null
   lastRotatedAt: string | null
@@ -70,6 +72,7 @@ export default function VaultPage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [savingCredential, setSavingCredential] = React.useState(false)
   const [credentialForm, setCredentialForm] = React.useState(initialCredentialForm)
+  const [editingCredentialId, setEditingCredentialId] = React.useState<string | null>(null)
 
   const fetchData = React.useCallback(async () => {
     setLoading(true)
@@ -153,12 +156,14 @@ export default function VaultPage() {
     })
   }
 
-  async function createCredential(e: React.FormEvent) {
+  async function saveCredential(e: React.FormEvent) {
     e.preventDefault()
     setSavingCredential(true)
     try {
-      const res = await fetch("/api/vault/credentials", {
-        method: "POST",
+      const url = editingCredentialId ? `/api/vault/credentials/${editingCredentialId}` : "/api/vault/credentials"
+      const method = editingCredentialId ? "PUT" : "POST"
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: credentialForm.title,
@@ -171,16 +176,49 @@ export default function VaultPage() {
 
       const data = (await res.json().catch(() => ({}))) as { error?: string }
       if (!res.ok) {
-        throw new Error(data.error || "Falha ao criar credencial")
+        throw new Error(data.error || "Falha ao salvar credencial")
       }
 
       setCredentialForm(initialCredentialForm)
+      setEditingCredentialId(null)
       setIsModalOpen(false)
       await fetchData()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado")
     } finally {
       setSavingCredential(false)
+    }
+  }
+
+  function openEditCredential(credential: VaultCredential) {
+    setEditingCredentialId(credential.id)
+    setCredentialForm({
+      title: credential.title,
+      username: credential.username,
+      password: "",
+      type: credential.type,
+      assetId: credential.assetId || "",
+    })
+    setIsModalOpen(true)
+  }
+
+  function openNewCredential() {
+    setEditingCredentialId(null)
+    setCredentialForm(initialCredentialForm)
+    setIsModalOpen(true)
+  }
+
+  async function handleDeleteCredential(id: string) {
+    if (!confirm("Deseja realmente excluir esta credencial? Essa acao nao pode ser desfeita.")) return
+    try {
+      const res = await fetch(`/api/vault/credentials/${id}`, { method: "DELETE" })
+      const data = (await res.json().catch(() => ({}))) as { error?: string }
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao excluir credencial")
+      }
+      await fetchData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado")
     }
   }
 
@@ -196,7 +234,7 @@ export default function VaultPage() {
             <AlertTriangle className="mr-2 h-4 w-4" />
             {stats?.staleCredentials ?? 0} senhas sem rotacao recente
           </Badge>
-          <Button className="bg-primary" onClick={() => setIsModalOpen(true)}>
+          <Button className="bg-primary" onClick={openNewCredential}>
             <Plus className="mr-2 h-4 w-4" />
             Nova Credencial
           </Button>
@@ -264,9 +302,24 @@ export default function VaultPage() {
                       <CardDescription className="text-xs">{credential.assetLabel}</CardDescription>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      onClick={() => openEditCredential(credential)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteCredential(credential.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-1.5">
@@ -318,8 +371,12 @@ export default function VaultPage() {
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Credencial">
-        <form className="space-y-4" onSubmit={createCredential}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); setEditingCredentialId(null) }}
+        title={editingCredentialId ? "Editar Credencial" : "Nova Credencial"}
+      >
+        <form className="space-y-4" onSubmit={saveCredential}>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="vault-title">
               Nome da credencial
@@ -368,15 +425,15 @@ export default function VaultPage() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="vault-password">
-              Senha
+              Senha {editingCredentialId && <span className="text-muted-foreground font-normal">(deixe em branco para manter a atual)</span>}
             </label>
             <Input
               id="vault-password"
               type="password"
               value={credentialForm.password}
               onChange={(e) => setCredentialForm((prev) => ({ ...prev, password: e.target.value }))}
-              placeholder="Senha forte"
-              required
+              placeholder={editingCredentialId ? "Nova senha (opcional)" : "Senha forte"}
+              required={!editingCredentialId}
             />
           </div>
 
@@ -400,12 +457,17 @@ export default function VaultPage() {
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} disabled={savingCredential}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => { setIsModalOpen(false); setEditingCredentialId(null) }}
+              disabled={savingCredential}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={savingCredential}>
               {savingCredential ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lock className="mr-2 h-4 w-4" />}
-              Salvar credencial
+              {editingCredentialId ? "Salvar Alterações" : "Salvar credencial"}
             </Button>
           </div>
         </form>
@@ -413,3 +475,4 @@ export default function VaultPage() {
     </div>
   )
 }
+

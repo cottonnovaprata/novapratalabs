@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import bcrypt from "bcryptjs"
 
 export async function PUT(
   request: Request,
@@ -14,19 +15,29 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, email, role, phone, department, jobTitle, status } = body
+    const { name, email, role, phone, department, jobTitle, status, newPassword } = body
+
+    const data: any = {
+      name,
+      email,
+      role,
+      phone: phone || null,
+      department: department || null,
+      jobTitle: jobTitle || null,
+      status: status || "ATIVO",
+    }
+
+    // Admin define uma senha nova pro colaborador (só se o campo foi preenchido)
+    if (typeof newPassword === "string" && newPassword.trim().length > 0) {
+      if (newPassword.trim().length < 6) {
+        return NextResponse.json({ error: "A nova senha precisa ter pelo menos 6 caracteres" }, { status: 400 })
+      }
+      data.password = await bcrypt.hash(newPassword.trim(), 10)
+    }
 
     const user = await prisma.user.update({
       where: { id },
-      data: {
-        name,
-        email,
-        role,
-        phone: phone || null,
-        department: department || null,
-        jobTitle: jobTitle || null,
-        status: status || "ATIVO",
-      },
+      data,
     })
 
     return NextResponse.json({ ...user, password: undefined })
@@ -66,3 +77,4 @@ export async function DELETE(
     return NextResponse.json({ error: "Erro ao excluir colaborador" }, { status: 500 })
   }
 }
+

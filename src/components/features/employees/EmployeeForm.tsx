@@ -21,6 +21,7 @@ export function EmployeeForm({ initialData, onSubmit, onCancel }: EmployeeFormPr
     jobTitle: initialData?.jobTitle || "",
     role: initialData?.role || "USER",
     status: initialData?.status || "ATIVO",
+    newPassword: "",
   })
 
   async function handleSubmit(e: React.FormEvent) {
@@ -101,9 +102,22 @@ export function EmployeeForm({ initialData, onSubmit, onCancel }: EmployeeFormPr
         </div>
       </div>
 
-      {!initialData && (
+      {initialData ? (
+        <div className="space-y-2 pt-2 border-t">
+          <label className="text-sm font-medium">Definir nova senha de acesso</label>
+          <Input
+            type="password"
+            placeholder="Deixe em branco para não alterar"
+            value={formData.newPassword}
+            onChange={e => setFormData({ ...formData, newPassword: e.target.value })}
+          />
+          <p className="text-xs text-muted-foreground">
+            Use isso pra dar acesso a um colaborador que ainda não consegue entrar no sistema. Avise a senha por um canal seguro (não por aqui).
+          </p>
+        </div>
+      ) : (
         <p className="text-xs text-muted-foreground">
-          O colaborador é criado com uma senha temporária aleatória. Ele mesmo define a senha final usando "esqueci minha senha" na tela de login, com o e-mail cadastrado acima.
+          O colaborador é criado com uma senha temporária aleatória. Depois de criar, edite o cadastro dele pra definir uma senha de acesso e avisá-lo.
         </p>
       )}
 
@@ -116,3 +130,4 @@ export function EmployeeForm({ initialData, onSubmit, onCancel }: EmployeeFormPr
     </form>
   )
 }
+

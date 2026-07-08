@@ -4,13 +4,14 @@ import React from "react"
 import {
   Network,
   Activity,
-  Settings2,
   Globe,
   Server,
   Search,
   Zap,
   ShieldCheck,
   Plus,
+  Pencil,
+  Trash2,
   Loader2,
 } from "lucide-react"
 
@@ -60,6 +61,7 @@ export default function NetworkPage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [segmentForm, setSegmentForm] = React.useState(initialSegmentForm)
   const [savingSegment, setSavingSegment] = React.useState(false)
+  const [editingSegmentId, setEditingSegmentId] = React.useState<string | null>(null)
 
   const fetchOverview = React.useCallback(async () => {
     setLoading(true)
@@ -92,28 +94,63 @@ export default function NetworkPage() {
     )
   })
 
-  async function handleCreateSegment(e: React.FormEvent) {
+  async function handleSaveSegment(e: React.FormEvent) {
     e.preventDefault()
     setSavingSegment(true)
     try {
-      const res = await fetch("/api/network/segments", {
-        method: "POST",
+      const url = editingSegmentId ? `/api/network/segments/${editingSegmentId}` : "/api/network/segments"
+      const method = editingSegmentId ? "PUT" : "POST"
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(segmentForm),
       })
 
       const data = (await res.json().catch(() => ({}))) as { error?: string }
       if (!res.ok) {
-        throw new Error(data.error || "Nao foi possivel criar a VLAN")
+        throw new Error(data.error || "Nao foi possivel salvar a VLAN")
       }
 
       setSegmentForm(initialSegmentForm)
+      setEditingSegmentId(null)
       setIsModalOpen(false)
       await fetchOverview()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado")
     } finally {
       setSavingSegment(false)
+    }
+  }
+
+  function openEditSegment(segment: NetworkSegment) {
+    setEditingSegmentId(segment.id)
+    setSegmentForm({
+      name: segment.name,
+      gateway: segment.gateway,
+      vlan: segment.vlan,
+      cidr: segment.cidr,
+      totalIps: segment.totalIps,
+    })
+    setIsModalOpen(true)
+  }
+
+  function openNewSegment() {
+    setEditingSegmentId(null)
+    setSegmentForm(initialSegmentForm)
+    setIsModalOpen(true)
+  }
+
+  async function handleDeleteSegment(id: string) {
+    if (!confirm("Deseja realmente excluir esta VLAN/segmento?")) return
+    try {
+      const res = await fetch(`/api/network/segments/${id}`, { method: "DELETE" })
+      const data = (await res.json().catch(() => ({}))) as { error?: string }
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao excluir segmento")
+      }
+      await fetchOverview()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado")
     }
   }
 
@@ -132,7 +169,7 @@ export default function NetworkPage() {
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2 h-4 w-4" />}
             Atualizar
           </Button>
-          <Button className="bg-primary" onClick={() => setIsModalOpen(true)}>
+          <Button className="bg-primary" onClick={openNewSegment}>
             <Plus className="mr-2 h-4 w-4" />
             Nova VLAN
           </Button>
@@ -264,9 +301,24 @@ export default function NetworkPage() {
                       </Badge>
                     </td>
                     <td className="p-4 text-right">
-                      <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Settings2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => openEditSegment(segment)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteSegment(segment.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -276,8 +328,12 @@ export default function NetworkPage() {
         </CardContent>
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova VLAN">
-        <form className="space-y-4" onSubmit={handleCreateSegment}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); setEditingSegmentId(null) }}
+        title={editingSegmentId ? "Editar VLAN" : "Nova VLAN"}
+      >
+        <form className="space-y-4" onSubmit={handleSaveSegment}>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="segment-name">
               Nome
@@ -349,12 +405,17 @@ export default function NetworkPage() {
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} disabled={savingSegment}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => { setIsModalOpen(false); setEditingSegmentId(null) }}
+              disabled={savingSegment}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={savingSegment}>
               {savingSegment ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-              Criar VLAN
+              {editingSegmentId ? "Salvar Alterações" : "Criar VLAN"}
             </Button>
           </div>
         </form>
@@ -362,3 +423,4 @@ export default function NetworkPage() {
     </div>
   )
 }
+
