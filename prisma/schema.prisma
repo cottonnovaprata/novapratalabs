@@ -45,6 +45,10 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(USER)
+  phone     String?
+  department String?
+  jobTitle  String?
+  status    String   @default("ATIVO")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   assets    Asset[]
