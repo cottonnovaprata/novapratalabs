@@ -8,7 +8,7 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/25 bg-blue-50 text-blue-700 border border-blue-200",
+          "dark:bg-primary/15 dark:text-[#a5b4fc] dark:border-primary/25 bg-indigo-50 text-indigo-700 border border-indigo-200",
         secondary:
           "dark:bg-zinc-500/10 dark:text-zinc-300 dark:border-zinc-500/20 bg-gray-50 text-gray-700 border border-gray-200",
         destructive:
@@ -36,3 +36,4 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
+
