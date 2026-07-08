@@ -54,11 +54,12 @@ export async function GET() {
         recentViews,
         rotationLimitDays: ROTATION_LIMIT_DAYS,
       },
-      credentials: credentials.map((credential) => ({
+      credentials: credentials.map((credential: any) => ({
         id: credential.id,
         title: credential.title,
         username: credential.username,
         type: credential.type,
+        assetId: credential.assetId,
         assetLabel: credential.asset?.tag || credential.asset?.name || "Sem ativo",
         lastUsedAt: credential.lastUsedAt,
         lastRotatedAt: credential.lastRotatedAt,
@@ -131,3 +132,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Erro ao criar credencial" }, { status: 500 })
   }
 }
+
