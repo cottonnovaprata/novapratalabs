@@ -10,7 +10,22 @@ import {
   ArrowUpRight,
   Calendar,
   Loader2,
+  TimerReset,
+  ShieldCheck,
+  ShieldAlert,
+  Clock3,
 } from "lucide-react"
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -33,6 +48,15 @@ type RecentAsset = {
   } | null
 }
 
+type SlaStats = {
+  openTickets: number
+  slaBreached: number
+  slaWithin: number
+  avgResolutionMinutes: number
+  ticketsByDay: { date: string; abertos: number }[]
+  ticketsByCategory: { category: string; count: number }[]
+}
+
 type DashboardStats = {
   totalAssets: number
   totalUsers: number
@@ -40,6 +64,7 @@ type DashboardStats = {
   alertsCount: number
   assetsByStatus: AssetStatusItem[]
   recentAssets: RecentAsset[]
+  sla: SlaStats
 }
 
 export default function DashboardPage() {
@@ -158,6 +183,99 @@ export default function DashboardPage() {
             </Card>
           </Link>
         ))}
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
+          SLA de Chamados
+        </h2>
+        <div className="grid gap-6 sm:grid-cols-3 mb-6">
+          <Card className="bg-emerald-500/5 border-emerald-500/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-emerald-500" /> Dentro do Prazo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.sla?.slaWithin ?? 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">Chamados no prazo do SLA</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-red-500/5 border-red-500/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4 text-red-500" /> SLA Estourado
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.sla?.slaBreached ?? 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">Precisam de atenção imediata</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-blue-500/5 border-blue-500/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Clock3 className="h-4 w-4 text-blue-500" /> Tempo Médio de Resolução
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {stats?.sla?.avgResolutionMinutes
+                  ? stats.sla.avgResolutionMinutes < 60
+                    ? `${stats.sla.avgResolutionMinutes}min`
+                    : `${(stats.sla.avgResolutionMinutes / 60).toFixed(1)}h`
+                  : "—"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Média dos chamados concluídos</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <TimerReset className="h-4 w-4 text-primary" /> Chamados Abertos (14 dias)
+              </CardTitle>
+              <CardDescription>Volume diário de novos chamados</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={stats?.sla?.ticketsByDay || []}>
+                  <defs>
+                    <linearGradient id="colorAbertos" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                  <XAxis dataKey="date" fontSize={11} tickLine={false} />
+                  <YAxis fontSize={11} tickLine={false} allowDecimals={false} width={28} />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="abertos" stroke="#3b82f6" fill="url(#colorAbertos)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold">Chamados por Categoria</CardTitle>
+              <CardDescription>As categorias que mais geram chamados</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={stats?.sla?.ticketsByCategory || []} layout="vertical" margin={{ left: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} horizontal={false} />
+                  <XAxis type="number" fontSize={11} allowDecimals={false} />
+                  <YAxis type="category" dataKey="category" fontSize={11} width={90} tickLine={false} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-7">

@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
 import { cn } from "@/lib/utils"
+import { getSlaStatus } from "@/lib/sla"
 import { TicketForm } from "@/components/features/tickets/TicketForm"
 
 const PRIORITY_STYLE: Record<string, string> = {
@@ -86,6 +87,7 @@ export default function TicketsPage() {
   const openCount = tickets.filter(t => t.status !== "CONCLUIDO").length
   const criticalOpenCount = tickets.filter(t => t.status !== "CONCLUIDO" && t.priority === "CRITICA").length
   const closedCount = tickets.filter(t => t.status === "CONCLUIDO").length
+  const slaBreachedCount = tickets.filter(t => !getSlaStatus(t).isResolved && getSlaStatus(t).isBreached).length
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -100,7 +102,7 @@ export default function TicketsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-4">
         <Card className="bg-amber-500/5 border-amber-500/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -129,6 +131,16 @@ export default function TicketsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{String(closedCount).padStart(2, '0')}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-rose-500/5 border-rose-500/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-rose-500" /> SLA Estourado
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{String(slaBreachedCount).padStart(2, '0')}</div>
           </CardContent>
         </Card>
       </div>
@@ -178,6 +190,25 @@ export default function TicketsPage() {
                             Recorrente
                           </Badge>
                         )}
+                        {(() => {
+                          const sla = getSlaStatus(t)
+                          return (
+                            <Badge
+                              className={cn(
+                                "text-[10px] font-normal py-0 h-4 border",
+                                sla.isResolved
+                                  ? sla.isBreached
+                                    ? "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+                                    : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                  : sla.isBreached
+                                  ? "bg-red-500/10 text-red-500 border-red-500/20"
+                                  : "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                              )}
+                            >
+                              SLA: {sla.label}
+                            </Badge>
+                          )
+                        })()}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 max-w-xl truncate">
                         {t.description} — aberto por {t.requesterName} em {new Date(t.openedAt).toLocaleDateString()}

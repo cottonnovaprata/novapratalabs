@@ -1,0 +1,3593 @@
+diff --git a/limpeza-e-modulos-novapratalabs.patch b/limpeza-e-modulos-novapratalabs.patch
+deleted file mode 100644
+index 4f5f63d..0000000
+--- a/limpeza-e-modulos-novapratalabs.patch
++++ /dev/null
+@@ -1,3193 +0,0 @@
+-diff --git a/CHANGES.txt b/CHANGES.txt
+-deleted file mode 100644
+-index 75b926f..0000000
+---- a/CHANGES.txt
+-+++ /dev/null
+-@@ -1,235 +0,0 @@
+--﻿🎨 NovaPrata Labs - UI/UX TRANSFORMATION SUMMARY
+--============================================
+--
+--COMPLETED TRANSFORMATIONS
+--========================
+--
+--✅ Components Base Layer
+--   • card.tsx          - Borders suaves, sombras leves, transições
+--   • badge.tsx         - Cores semânticas, backgrounds com opacidade
+--   • button.tsx        - Estados claros, feedback visual, transições
+--   • input.tsx         - Focus premium, backgrounds escuros
+--   • modal.tsx         - Backdrop blur, animações, keyboard nav
+--
+--✅ Layout Base
+--   • layout.tsx        - Sidebar + Topbar + Main content
+--   • Sidebar           - Backdrop blur, estado ativo elegante
+--   • Topbar            - Height reduzido, search premium
+--   • Main Content      - Background gradiente, padding responsivo
+--
+--✅ Pages Redesigned
+--   • dashboard/page.tsx - Stat cards, recents, status distribution
+--   • assets/page.tsx   - Table premium, row hover, actions reveal
+--   • AssetForm.tsx     - Labels uppercase, grid responsivo
+--
+--✅ Features Preserved
+--   • 100% funcionalidade mantida
+--   • Backend intacto
+--   • APIs não alteradas
+--   • Lógica de negócio preservada
+--   • Banco de dados funcionando
+--
+--NEW DOCUMENTATION
+--=================
+--
+--📄 DESIGN_SYSTEM.md        - Sistema de design completo
+--📄 UI_TRANSFORMATION.md    - Antes vs depois detalhado
+--📄 VISUAL_GUIDE.md         - Guia visual com exemplos
+--📄 README_DESIGN.md        - Quick start e referência
+--📄 CHANGES.txt            - Este arquivo
+--
+--DESIGN PRINCIPLES APPLIED
+--=========================
+--
+--✨ Elegância Sutil
+--   • Sombras leves ao invés de pesadas
+--   • Borders com transparência (/50)
+--   • Backgrounds com opacidade (/10, /20, /30)
+--
+--✨ Hierarquia Clara
+--   • Tipografia bem definida
+--   • Cores com propósito
+--   • Espaçamento intencional
+--
+--✨ Feedback Visual
+--   • Hover states em tudo interativo
+--   • Focus states acessíveis
+--   • Transições suaves (200ms padrão)
+--   • Active states com scale 95%
+--
+--✨ Responsiveness
+--   • Mobile-first approach
+--   • Breakpoints: sm, md, lg
+--   • Colunas ocultáveis
+--   • Padding responsivo
+--
+--✨ Consistência
+--   • Design system unificado
+--   • Cores padronizadas
+--   • Espaçamento regular
+--   • Tipografia clara
+--
+--KEY IMPROVEMENTS
+--================
+--
+--COLORS
+--------
+--Backgrounds:  zinc-950, zinc-900
+--Text:         zinc-100/200 (primary), zinc-400/500 (secondary)
+--Borders:      border-zinc-800/50
+--Hover:        bg-zinc-800/50
+--Status:       emerald (success), amber (warning), red (destructive)
+--
+--SPACING
+---------
+--Small:   p-2, gap-1.5, space-y-2
+--Medium:  p-4, gap-3, space-y-4
+--Large:   p-5 sm:p-6 (components), p-8 (pages)
+--
+--TYPOGRAPHY
+------------
+--H1: text-3xl font-bold       (page titles)
+--H2: text-2xl font-bold       (section titles)
+--H3: text-base font-semibold  (card titles)
+--Label: text-xs font-semibold uppercase tracking-wide
+--Body: text-sm font-normal
+--
+--COMPONENTS
+------------
+--Card:    rounded-lg border-zinc-800/50 shadow-sm hover:shadow-md
+--Badge:   rounded-md px-2 py-1 border /10 bg + /20 border
+--Button:  rounded-lg active:scale-95 transition-all duration-200
+--Input:   rounded-lg border-zinc-700/50 bg-zinc-900/50 focus:ring-primary/30
+--Modal:   rounded-xl border-zinc-800/50 bg-zinc-900 shadow-2xl
+--
+--TRANSITIONS
+-------------
+--Standard:   duration-200 (hover, color changes)
+--Modal:      duration-300 (animations)
+--Progress:   duration-500 (visual effect)
+--Transform:  active:scale-95 (feedback)
+--
+--RESPONSIVENESS
+----------------
+--Mobile:  < 640px   - Grid 1-2 cols, p-4, hidden lg:, icons h-4 w-4
+--Tablet:  640-1024  - Grid 2-3 cols, p-6, some hidden md:, icons varied
+--Desktop: > 1024px  - Grid 4+ cols, p-8, all visible, icons h-5 w-5
+--
+--FILES MODIFIED
+--==============
+--
+--✅ src/components/ui/card.tsx
+--✅ src/components/ui/badge.tsx
+--✅ src/components/ui/button.tsx
+--✅ src/components/ui/input.tsx
+--✅ src/components/ui/modal.tsx
+--✅ src/app/(dashboard)/layout.tsx
+--✅ src/app/(dashboard)/dashboard/page.tsx
+--✅ src/app/(dashboard)/assets/page.tsx
+--✅ src/components/features/assets/AssetForm.tsx
+--
+--FILES CREATED
+--=============
+--
+--🆕 DESIGN_SYSTEM.md
+--🆕 UI_TRANSFORMATION.md
+--🆕 VISUAL_GUIDE.md
+--🆕 README_DESIGN.md
+--🆕 CHANGES.txt (this file)
+--
+--WHAT DID NOT CHANGE
+--===================
+--
+--✓ Backend code
+--✓ API routes
+--✓ Database schema
+--✓ Business logic
+--✓ Authentication
+--✓ Data flow
+--✓ Features
+--
+--STATS
+--=====
+--
+--Files Modified:      9
+--Files Created:       5
+--Lines of Code Changed: ~800
+--Components Updated:   5
+--Pages Redesigned:     3
+--New Documentation:    4 files
+--Functionality Broken: 0
+--
+--QUALITY METRICS
+--===============
+--
+--Before:
+--  Visual Score:     6/10 (Funcional, sem polish)
+--  Premium Feel:     3/10 (Básico)
+--  Responsiveness:   5/10 (Parcial)
+--  Consistency:      6/10 (Irregular)
+--
+--After:
+--  Visual Score:     9/10 (Premium, polido)
+--  Premium Feel:     9/10 (Linear/Vercel level)
+--  Responsiveness:   10/10 (Perfeito)
+--  Consistency:      10/10 (100% consistente)
+--
+--NEXT STEPS (OPTIONAL)
+--====================
+--
+--If you want even more enhancement:
+--
+--1. Dark/Light Theme Toggle
+--2. Advanced Animations (Framer Motion)
+--3. Loading Skeletons
+--4. Toast Notifications
+--5. Advanced Filtering
+--6. Onboarding Walkthrough
+--7. Advanced Analytics
+--8. Data Visualization (Charts)
+--
+--HOW TO USE
+--==========
+--
+--1. Install dependencies:
+--   npm install
+--
+--2. Run development server:
+--   npm run dev
+--
+--3. Access:
+--   http://localhost:3000
+--
+--4. Login:
+--   Use existing credentials
+--
+--5. Explore:
+--   • Dashboard - See stat cards and recents
+--   • Assets - See table redesign
+--   • Forms - See input enhancements
+--   • All pages - See sidebar/topbar improvements
+--
+--SUPPORT
+--=======
+--
+--For design questions:
+--
+--1. Read VISUAL_GUIDE.md for examples
+--2. Check DESIGN_SYSTEM.md for patterns
+--3. Look at existing components
+--4. Keep consistency with cn() utility
+--5. Follow established color/spacing patterns
+--
+--SUMMARY
+--=======
+--
+--✨ NovaPrata Labs has been completely transformed visually
+--✨ Maintains 100% of original functionality
+--✨ Now looks like a premium SaaS (Linear, Vercel, Stripe level)
+--✨ Fully responsive and accessible
+--✨ Comprehensive documentation included
+--✨ Ready for production use
+--
+--Status: ✅ COMPLETE - Ready for Premium Production
+--
+--Built with attention to detail for the best user experience.
+-diff --git a/COMO_TESTAR_QR_CODE.md b/COMO_TESTAR_QR_CODE.md
+-deleted file mode 100644
+-index 3d7014a..0000000
+---- a/COMO_TESTAR_QR_CODE.md
+-+++ /dev/null
+-@@ -1,169 +0,0 @@
+--﻿# 🔍 Como Testar QR Code - NovaPrata Labs
+--
+--## ⚠️ Problema Encontrado
+--
+--O servidor Next.js está apresentando um erro de **lockfile de permissão** do Turbopack. Isso é comum em ambientes de desenvolvimento remoto.
+--
+--## ✅ Solução Rápida
+--
+--### **Opção 1: Usar a Página Web Diretamente (Recomendado)**
+--
+--Você **JÁ TEM** acesso à página de teste do QR Code que criei:
+--
+--**URL:**
+--```
+--http://192.168.1.101:3000/assets/cmo1yot6t0001vxxwx0k3rcr7/qr-test
+--```
+--
+--### **Como usar:**
+--
+--1. **Se o servidor estiver rodando:**
+--   - Abra no navegador: `http://localhost:3000/assets/cmo1yot6t0001vxxwx0k3rcr7/qr-test`
+--   - Veja o QR Code grande
+--   - Copie a URL ou baixe o QR Code
+--
+--2. **No celular na mesma rede:**
+--   - Escaneia o QR Code com a câmera
+--   - Ou acessa: `http://192.168.1.101:3000/assets/cmo1yot6t0001vxxwx0k3rcr7?quick=info`
+--
+-----
+--
+--## 🛠️ Solução para o Servidor (Se Quiser Usar Localmente)
+--
+--### **Opção A: Desabilitar Turbopack**
+--
+--```bash
+--cd /sessions/eloquent-busy-mendel/mnt/novapratalabs
+--TURBOPACK=0 npm run dev
+--```
+--
+--### **Opção B: Limpar Cache e Reconstruir**
+--
+--```bash
+--cd /sessions/eloquent-busy-mendel/mnt/novapratalabs
+--rm -rf .next .turbo node_modules/.turbopack
+--npm install
+--npm run dev
+--```
+--
+--### **Opção C: Usar Build Production**
+--
+--```bash
+--cd /sessions/eloquent-busy-mendel/mnt/novapratalabs
+--npm run build
+--npm run start
+--```
+--
+-----
+--
+--## 📁 **Arquivos de Teste Criados**
+--
+--### **Componente QR Code:**
+--```
+--src/components/features/assets/AssetQRCode.tsx
+--```
+--- Gera QR Code
+--- Download em PNG
+--- Impressão de etiqueta
+--- Cópia de URL
+--
+--### **Página de Teste:**
+--```
+--src/app/(dashboard)/assets/[id]/qr-test/page.tsx
+--```
+--- QR Code 500x500px
+--- Instruções visuais
+--- 3 botões de ação
+--- Fluxo de segurança explicado
+--
+--### **Integração na Página de Detalhe:**
+--```
+--src/app/(dashboard)/assets/[id]/page.tsx
+--```
+--- Componente QR Code adicionado
+--- Suporte a quick actions (?quick=maintenance)
+--- Login redirect automático
+--
+-----
+--
+--## 🎯 **O que você pode fazer AGORA:**
+--
+--1. ✅ **Ver o QR Code renderizado** na página de teste
+--2. ✅ **Escanear com celular** (se conseguir acessar via IP)
+--3. ✅ **Testar fluxo de login** - acesse sem estar autenticado
+--4. ✅ **Copiar URL** do QR Code e compartilhar
+--5. ✅ **Baixar PNG** para usar em etiquetas
+--
+-----
+--
+--## 📱 **Teste Completo do Fluxo:**
+--
+--### **No PC:**
+--1. Acesse: `http://localhost:3000/assets/cmo1yot6t0001vxxwx0k3rcr7/qr-test`
+--2. Veja o QR Code
+--3. Clique em "Abrir URL do QR Code"
+--4. Vê a página do ativo funcionando
+--
+--### **No Celular (mesma rede WiFi):**
+--1. Abre câmera do celular
+--2. Aponta para QR Code na tela do PC
+--3. Toca no link que aparecer
+--4. Página do ativo carrega no celular!
+--
+--### **Teste de Login:**
+--1. Sai da conta no navegador (logout)
+--2. Escaneia QR Code no celular
+--3. Sistema redireciona para `/login`
+--4. Faz login
+--5. **Automaticamente retorna** para a página do ativo!
+--
+-----
+--
+--## ✨ **Funcionalidades Implementadas**
+--
+--| Feature | Status |
+--|---------|--------|
+--| QR Code Generation | ✅ Funcionando |
+--| QR Code Download | ✅ Funcionando |
+--| QR Code Print | ✅ Funcionando |
+--| URL Redirect | ✅ Funcionando |
+--| Login Security | ✅ Funcionando |
+--| Quick Actions | ✅ Funcionando |
+--| Light/Dark Mode | ✅ Funcionando |
+--| Mobile Responsive | ✅ Funcionando |
+--
+-----
+--
+--## 🔐 **Segurança Testada**
+--
+--- ✅ Acesso protegido por autenticação
+--- ✅ Redirect automático após login
+--- ✅ URL original preservada
+--- ✅ JWT Token validation
+--- ✅ Session cookies (HTTP-only)
+--
+-----
+--
+--## 📞 **Próximas Etapas**
+--
+--Se quiser que o servidor rode sem problemas:
+--
+--1. **Usar servidor remoto** (AWS, Vercel, etc)
+--2. **Usar Docker** para evitar problemas de permissão
+--3. **Desabilitar Turbopack** manualmente no npm run
+--4. **Usar produção** (npm run build && npm run start)
+--
+-----
+--
+--## 💡 **Resumo**
+--
+--A **funcionalidade de QR Code está 100% pronta** para usar!
+--
+--- ✅ Página de teste criada
+--- ✅ Componente QR Code implementado
+--- ✅ Segurança com autenticação
+--- ✅ Suporte a mobile
+--
+--Você pode **começar a testar agora** acessando a página de teste do QR Code!
+--
+--**Acesse:** `http://192.168.1.101:3000/assets/cmo1yot6t0001vxxwx0k3rcr7/qr-test`
+-diff --git a/DEPLOY_SUCCESS.md b/DEPLOY_SUCCESS.md
+-deleted file mode 100644
+-index 879c75d..0000000
+---- a/DEPLOY_SUCCESS.md
+-+++ /dev/null
+-@@ -1,237 +0,0 @@
+--﻿# ✅ Deploy Bem-Sucedido - NovaPrata Labs no Vercel
+--
+--## 🎯 Status do Projeto
+--
+--```
+--✅ GitHub: https://github.com/cottonnovaprata/ativosTI
+--✅ Vercel: Projeto deployado e LIVE
+--✅ Build: Compilado com sucesso (Next.js 16.2.4 + Turbopack)
+--✅ Database: Pronta para configuração
+--```
+--
+-----
+--
+--## 🚀 Próximas Etapas CRÍTICAS
+--
+--### 1️⃣ **Configure as Environment Variables no Vercel**
+--
+--Seu projeto está live, mas **ainda precisa do banco de dados configurado**.
+--
+--**Acesse Vercel Dashboard:**
+--1. Vá para https://vercel.com/dashboard
+--2. Selecione projeto `ativosTI`
+--3. Clique em "Settings" → "Environment Variables"
+--
+--**Adicione estas variáveis:**
+--
+--```
+--DATABASE_URL=
+--JWT_SECRET=seu-segredo-jwt-aqui
+--NEXTAUTH_URL=https://seu-dominio-vercel.vercel.app
+--NEXTAUTH_SECRET=seu-segredo-nextauth-aqui
+--NEXT_PUBLIC_API_URL=https://seu-dominio-vercel.vercel.app
+--```
+--
+-----
+--
+--### 2️⃣ **Configure o Banco de Dados (escolha uma opção)**
+--
+--#### Opção A: Vercel Postgres (RECOMENDADO)
+--
+--1. No Vercel Dashboard, clique em "Storage"
+--2. "Create Database" → "Postgres"
+--3. Dê um nome: `novapratalabs-db`
+--4. Clique "Create"
+--5. **Copie a connection string** que aparecerá
+--6. Cole em `DATABASE_URL` nas Environment Variables
+--7. **SALVE as variáveis** (clique botão Save)
+--
+--#### Opção B: PostgreSQL Externo
+--
+--Se você já tem um banco PostgreSQL rodando:
+--```
+--DATABASE_URL=postgresql://username:password@host:port/database
+--```
+--
+--#### Opção C: Supabase (Alternativa)
+--
+--1. Vá para https://supabase.com
+--2. Crie um projeto novo
+--3. Copie a connection string
+--4. Adicione em `DATABASE_URL`
+--
+-----
+--
+--### 3️⃣ **Gere Secrets Seguros**
+--
+--Abra terminal e gere as chaves secretas:
+--
+--```bash
+--# Gerar JWT_SECRET
+--openssl rand -base64 32
+--
+--# Gerar NEXTAUTH_SECRET
+--openssl rand -base64 32
+--```
+--
+--Copie cada resultado e adicione às Environment Variables no Vercel.
+--
+-----
+--
+--### 4️⃣ **Execute Migrations do Banco**
+--
+--Depois de adicionar `DATABASE_URL`, execute as migrações:
+--
+--```bash
+--# No seu PC, na pasta do projeto
+--npx prisma migrate deploy
+--```
+--
+--Ou se for a primeira vez:
+--```bash
+--npx prisma migrate dev --name init
+--```
+--
+-----
+--
+--## 📋 Checklist de Verificação
+--
+--- [ ] Environment Variables adicionadas no Vercel
+--- [ ] DATABASE_URL configurada (Postgres/Supabase/outro)
+--- [ ] JWT_SECRET gerado e adicionado
+--- [ ] NEXTAUTH_SECRET gerado e adicionado
+--- [ ] Migrations executadas no banco
+--- [ ] Acessei a URL do Vercel no navegador
+--- [ ] Página de login carrega sem erros
+--- [ ] Consegui fazer login (se tiver dados de teste)
+--
+-----
+--
+--## 🔗 Links Importantes
+--
+--### Seu Projeto
+--
+--- **GitHub:** https://github.com/cottonnovaprata/ativosTI
+--- **Vercel Dashboard:** https://vercel.com/dashboard/projects/ativosTI
+--- **URL Live:** Será algo como `https://ativosTI-[random].vercel.app`
+--
+--### Encontrar URL Exata
+--
+--1. Vercel Dashboard → `ativosTI` → "Domains"
+--2. A URL principal está em destaque (comumente `.vercel.app`)
+--
+-----
+--
+--## 🧪 Testando o Projeto
+--
+--### Login Padrão (se dados de teste existem)
+--
+--Verifique no arquivo `.env` ou no `prisma/seed.ts` para dados padrão.
+--
+--Se houver usuário de teste:
+--```
+--Email: admin@novapratalabs.com (ou outro)
+--Senha: senha-teste (confira no código)
+--```
+--
+--### Testar QR Code
+--
+--1. Faça login
+--2. Vá para "Assets" (Ativos)
+--3. Clique em um ativo
+--4. A página deve mostrar o QR Code
+--5. Escaneie com o celular (mesmo WiFi)
+--
+-----
+--
+--## ⚠️ Erros Comuns e Soluções
+--
+--### "DATABASE_URL is required"
+--
+--- ❌ Não adicionou `DATABASE_URL` nas Environment Variables
+--- ✅ Adicione a variável e **redeploy** (`npm run redeploy` ou botão Redeploy no Vercel)
+--
+--### "PrismaClientInitializationError"
+--
+--- ❌ Migrations não executadas
+--- ✅ Execute: `npx prisma migrate deploy`
+--
+--### "Failed to compile"
+--
+--- ❌ Erro no código TypeScript
+--- ✅ Veja os logs: Vercel Dashboard → Deployments → últimas linhas
+--
+--### Login não funciona
+--
+--- ❌ JWT_SECRET não configurado
+--- ✅ Gere novo JWT_SECRET e adicione às variáveis
+--
+-----
+--
+--## 📊 Monitorando o Projeto
+--
+--### Ver Logs de Build
+--
+--1. Vercel Dashboard → Deployments
+--2. Clique no último deploy
+--3. "Build Logs" → vê tudo que aconteceu
+--
+--### Ver Logs de Runtime
+--
+--1. Mesmo lugar, aba "Runtime Logs"
+--2. Mostra erros enquanto usuários usam o app
+--
+--### Analytics
+--
+--1. Vercel Dashboard → Analytics
+--2. Vê:
+--   - Requests por minuto
+--   - Response times
+--   - Erros mais comuns
+--
+-----
+--
+--## 🔄 Deployar Atualizações
+--
+--Agora que está no GitHub + Vercel, toda vez que você fazer push, o Vercel faz redeploy automático:
+--
+--```bash
+--# No seu PC
+--git add .
+--git commit -m "Descrição da mudança"
+--git push origin main
+--```
+--
+--**Vercel vai automáticamente:**
+--1. 🔄 Detectar o novo commit
+--2. 🏗️ Executar build
+--3. 🚀 Fazer deploy
+--
+--Você vai ver tudo em tempo real no Vercel Dashboard.
+--
+-----
+--
+--## 🎉 Parabéns!
+--
+--Seu projeto **NovaPrata Labs** está:
+--- ✅ No GitHub
+--- ✅ Deployado no Vercel
+--- ✅ Live e acessível pela internet
+--- ✅ Com CI/CD automático
+--
+--Próximo passo: **Configure o banco de dados** seguindo as etapas acima! 🚀
+--
+-----
+--
+--## 💡 Dúvidas?
+--
+--Se tiver problemas:
+--
+--1. **Verifique os logs** no Vercel Dashboard
+--2. **Leia DEPLOYMENT.md** neste repositório
+--3. **Teste localmente** antes de fazer push:
+--   ```bash
+--   npm run dev
+--   ```
+--
+--Sucesso! 🎊
+-diff --git a/IMPLEMENTACAO_RESUMIDA.md b/IMPLEMENTACAO_RESUMIDA.md
+-deleted file mode 100644
+-index ffb9c46..0000000
+---- a/IMPLEMENTACAO_RESUMIDA.md
+-+++ /dev/null
+-@@ -1,99 +0,0 @@
+--﻿# 🎨 NovaPrata Labs - Transformação UI/UX Resumida
+--
+--## O Que Foi Feito
+--
+--### ✅ Componentes Base Refinados
+--- **Card**: Borders suaves (`border-zinc-800/50`), sombras leves, hover effect
+--- **Badge**: Cores semânticas com backgrounds transparentes
+--- **Button**: Estados claros, feedback visual, transições 200ms
+--- **Input**: Focus states premium, backgrounds escuros
+--- **Modal**: Backdrop blur, animações, keyboard navigation
+--
+--### ✅ Layout Redesenhado
+--- **Sidebar**: Backdrop blur, estado ativo elegante com border
+--- **Topbar**: Height reduzido (h-14), search premium, notificações discretas
+--- **Main Content**: Background gradiente sutil, padding responsivo
+--
+--### ✅ Pages Transformadas
+--- **Dashboard**: Stat cards horizontais, recents compactos, status visual
+--- **Assets Table**: Row hover elegante, actions reveal ao hover, responsiveness perfeita
+--- **AssetForm**: Labels uppercase premium, grid responsivo (1→2 cols)
+--
+--### ✅ 100% Funcionalidade Preservada
+--- Backend intacto
+--- APIs não alteradas
+--- Lógica de negócio mantida
+--- Banco de dados funcionando
+--
+-----
+--
+--## Documentação Incluída
+--
+--1. **DESIGN_SYSTEM.md** - Sistema de design completo com todos os padrões
+--2. **UI_TRANSFORMATION.md** - Comparação antes/depois detalhada
+--3. **VISUAL_GUIDE.md** - Guia visual com exemplos ASCII
+--4. **README_DESIGN.md** - Quick start e referência rápida
+--5. **CHANGES.txt** - Resumo técnico das mudanças
+--
+-----
+--
+--## Cores e Estilos
+--
+--### Paleta
+--- **Backgrounds**: `zinc-950`, `zinc-900`
+--- **Text**: `zinc-100/200` (primary), `zinc-400/500` (secondary)
+--- **Borders**: `border-zinc-800/50`
+--- **Hover**: `bg-zinc-800/50`
+--- **Status**: emerald (success), amber (warning), red (destructive)
+--
+--### Spacing
+--- **p-5 sm:p-6** - Cards/Components padrão
+--- **gap-4** - Grid padrão
+--- **space-y-4** - Vertical spacing padrão
+--- **p-8** - Pages padding large
+--
+--### Tipografia
+--- **H1**: `text-3xl font-bold` - Títulos de página
+--- **H3**: `text-base font-semibold` - Títulos de cards
+--- **Label**: `text-xs font-semibold uppercase tracking-wide` - Premium feel
+--- **Body**: `text-sm font-normal` - Texto principal
+--
+-----
+--
+--## Transições
+--
+--```
+--Padrão:    transition-all duration-200
+--Modal:     duration-300
+--Progress:  duration-500
+--Active:    active:scale-95
+--```
+--
+-----
+--
+--## Responsiveness
+--
+--| Device | Grid | Padding | Icons |
+--|--------|------|---------|-------|
+--| Mobile | 1-2 | p-4 | h-4 w-4 |
+--| Tablet | 2-3 | p-6 | h-4 w-4 |
+--| Desktop | 4+ | p-8 | h-5 w-5 |
+--
+-----
+--
+--## Qualidade
+--
+--### Antes
+--- Visual: 6/10 | Premium: 3/10 | Responsiveness: 5/10 | Consistency: 6/10
+--
+--### Depois
+--- Visual: 9/10 | Premium: 9/10 | Responsiveness: 10/10 | Consistency: 10/10
+--
+-----
+--
+--## Status
+--
+--✅ **Pronto para Produção Premium**
+--
+--NovaPrata Labs agora compete com Linear, Vercel e Stripe em qualidade visual.
+--
+-diff --git a/PUSH_INSTRUCTIONS.txt b/PUSH_INSTRUCTIONS.txt
+-deleted file mode 100644
+-index e4abb44..0000000
+---- a/PUSH_INSTRUCTIONS.txt
+-+++ /dev/null
+-@@ -1,25 +0,0 @@
+--🚀 INSTRUÇÕES PARA FAZER PUSH DO FIX
+--
+--ERRO ENCONTRADO:
+--- TypeScript error nos params da rota API
+--- Next.js 16 mudou a forma como params funcionam
+--- Precisam ser Promise<{ id: string }> em vez de { id: string }
+--
+--CORREÇÃO FEITA:
+--- ✅ Arquivo: src/app/api/assets/[id]/route.ts
+--- ✅ Todas as funções (GET, PUT, DELETE) corrigidas
+--- ✅ Commit local criado: "Fix: Corrigir tipos de params para Next.js 16"
+--
+--PRÓXIMO PASSO (VOCÊ PRECISA FAZER):
+--
+--Abra terminal no seu PC na pasta do projeto:
+--
+--  git push origin main
+--
+--Isso vai:
+--1. Enviar o fix para GitHub
+--2. Vercel vai detectar automaticamente
+--3. Vercel vai fazer rebuild (desta vez sem erro!)
+--4. Seu projeto fica LIVE em segundos
+--
+--PRONTO! 🎉
+-diff --git a/QR_TEST_GUIDE.md b/QR_TEST_GUIDE.md
+-deleted file mode 100644
+-index 265120e..0000000
+---- a/QR_TEST_GUIDE.md
+-+++ /dev/null
+-@@ -1,113 +0,0 @@
+--# 🔍 Guia de Teste - QR Code Local
+--
+--## 🚀 **Como Testar no PC**
+--
+--### **Passo 1: Acesse a página de teste do QR Code**
+--
+--1. Abra o navegador do seu PC
+--2. Digite: `http://localhost:3000/assets/cmo1yot6t0001vxxwx0k3rcr7/qr-test`
+--3. Você verá um QR Code gigante na tela
+--
+--### **Passo 2: Escaneie com o Celular**
+--
+--**Opção A - Com Câmera (Recomendado):**
+--1. Abra a câmera do seu celular
+--2. Aponte para o QR Code na tela do PC
+--3. Toque no link que aparecer
+--4. Será redirecionado para `http://192.168.1.101:3000/assets/[id]?quick=info`
+--
+--**Opção B - Copiar URL:**
+--1. Clique no botão "Copiar URL" na página
+--2. Cole no navegador do celular
+--3. Acesse a URL
+--
+--**Opção C - Teste Direto:**
+--1. Clique em "Abrir URL do QR Code"
+--2. A navegação ocorre no PC mesmo
+--
+-----
+--
+--## 📱 **URL que o QR Code Aponta**
+--
+--```
+--http://192.168.1.101:3000/assets/[ASSET_ID]?quick=info
+--```
+--
+--**Exemplo:**
+--```
+--http://192.168.1.101:3000/assets/cmo1yot6t0001vxxwx0k3rcr7?quick=info
+--```
+--
+-----
+--
+--## 🔐 **Fluxo de Segurança Testado**
+--
+--### **Cenário 1: Você está autenticado (PC)**
+--1. Escaneia QR Code
+--2. Vai direto para a página do ativo
+--3. ✅ Funciona!
+--
+--### **Cenário 2: Você não está autenticado (Celular novo)**
+--1. Escaneia QR Code no celular
+--2. URL tenta acessar `/assets/[id]?quick=info`
+--3. Middleware verifica autenticação
+--4. ❌ Não tem token → Redireciona para `/login?redirect=/assets/[id]?quick=info`
+--5. Faz login no celular
+--6. ✅ Redireciona automaticamente para a página do ativo!
+--
+-----
+--
+--## 🎯 **Links para Testar**
+--
+--### **No PC (localhost):**
+--- Dashboard: `http://localhost:3000/dashboard`
+--- Lista de Ativos: `http://localhost:3000/assets`
+--- Detalhe do Ativo: `http://localhost:3000/assets/cmo1yot6t0001vxxwx0k3rcr7`
+--- **Teste QR Code:** `http://localhost:3000/assets/cmo1yot6t0001vxxwx0k3rcr7/qr-test`
+--
+--### **No Celular (mesmo IP):**
+--- Dashboard: `http://192.168.1.101:3000/dashboard`
+--- Lista de Ativos: `http://192.168.1.101:3000/assets`
+--- Detalhe do Ativo: `http://192.168.1.101:3000/assets/cmo1yot6t0001vxxwx0k3rcr7`
+--- QR Code URL: `http://192.168.1.101:3000/assets/cmo1yot6t0001vxxwx0k3rcr7?quick=info`
+--
+-----
+--
+--## ✅ **Checklist de Teste**
+--
+--- [ ] Acesso via localhost no PC
+--- [ ] Acesso via IP 192.168.1.101 no PC
+--- [ ] Página de teste do QR Code carrega
+--- [ ] QR Code visível na tela
+--- [ ] Botão "Copiar URL" funciona
+--- [ ] Botão "Baixar QR Code" funciona
+--- [ ] Link "Abrir URL do QR Code" funciona
+--- [ ] Escaneia QR Code com celular
+--- [ ] Celular redireciona para página do ativo
+--- [ ] Informações do ativo carregam
+--- [ ] Quick action de manutenção funciona
+--
+-----
+--
+--## 🐛 **Se Algo Não Funcionar**
+--
+--**Problema: Celular não consegue acessar o IP**
+--- ✅ Certifique-se que estão na mesma rede WiFi
+--- ✅ PC e celular devem estar na rede `192.168.1.x`
+--- ✅ Firewall pode estar bloqueando - desative temporariamente
+--
+--**Problema: QR Code não carrega**
+--- ✅ Verifique internet (usa API externa)
+--- ✅ Tente F5 para recarregar
+--- ✅ Use a opção "Copiar URL" como alternativa
+--
+--**Problema: Login não redireciona**
+--- ✅ Verifique se o middleware está ativo
+--- ✅ Cookies devem estar habilitados
+--- ✅ Tente em modo anônimo se persistir
+--
+-----
+--
+--## 🎉 **Pronto para Testar!**
+--
+--Acesse agora: **http://localhost:3000/assets/cmo1yot6t0001vxxwx0k3rcr7/qr-test**
+-diff --git a/README.md b/README.md
+-index e215bc4..c81a87b 100644
+---- a/README.md
+-+++ b/README.md
+-@@ -1,36 +1,39 @@
+--This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+-+# NovaPrata Labs
+- 
+--## Getting Started
+-+Sistema interno de gestao de TI da Algodoeira Nova Prata / Cotton (Sorriso-MT).
+- 
+--First, run the development server:
+-+Stack: Next.js 16 (App Router) + TypeScript + Prisma + PostgreSQL. Deploy no Vercel.
+- 
+-+## Modulos ativos
+-+- **Ativos** — inventario de equipamentos (CRUD + QR code de identificacao por ativo)
+-+- **Colaboradores** — consulta de usuarios/responsaveis
+-+- **Manutencoes** — historico de manutencao por ativo
+-+- **Rede** — segmentos/VLANs cadastrados
+-+- **Relatorios** — indicadores e exportacao (Excel/PDF)
+-+- **Cofre** — credenciais sensiveis com log de acesso
+-+- **Chamados** — suporte interno (categoria, prioridade, status, recorrencia, equipamento relacionado)
+-+- **Certificados/Licencas** — controle de vencimento (certificado digital e licenca de software)
+-+- **Fornecedores** — contatos de suporte e controle de contrato
+-+
+-+## Pendencias conhecidas
+-+- Rodar `npx prisma migrate dev` apos o pull para criar as tabelas `tickets`, `documents` e `suppliers` no banco.
+-+- Dashboard (`/api/dashboard/stats`) ainda nao inclui os KPIs dos 3 modulos novos (chamados abertos, certificados vencendo, etc.) — proximo passo natural.
+-+
+-+## Rodando localmente
+- ```bash
+-+npm install
+-+cp .env.example .env   # configurar DATABASE_URL
+-+npx prisma migrate dev
+- npm run dev
+--# or
+--yarn dev
+--# or
+--pnpm dev
+--# or
+--bun dev
+- ```
+-+Acesse `http://localhost:3000`.
+- 
+--Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+--
+--You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+--
+--This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+--
+--## Learn More
+--
+--To learn more about Next.js, take a look at the following resources:
+--
+--- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+--- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+--
+--You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+--
+--## Deploy on Vercel
+--
+--The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+-+## Atencao
+-+- Os dados de seed (`prisma/seed.ts`) sao ficticios (usuarios, setores e VLANs de exemplo) — nao refletem a rede real da empresa. Antes de usar em producao, revisar/substituir por dados reais (setores: escritorio, barracao, alojamento, gerencia).
+-+- Consulte `STATUS_SISTEMA.md` para o estado atual detalhado do sistema.
+-+- Consulte `DESIGN_SYSTEM.md` para os padroes visuais/tokens usados nos componentes.
+-+- Consulte `QR_CODE_IMPLEMENTATION.md` para detalhes do QR code de ativos.
+-+- `AGENTS.md`/`CLAUDE.md` contem instrucoes para agentes de IA (Claude Code) trabalharem neste repositorio.
+- 
+--Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+-+## Deploy
+-+Deploy automatico no Vercel a partir da branch principal. Ver `DEPLOYMENT.md`.
+-diff --git a/README_DESIGN.md b/README_DESIGN.md
+-deleted file mode 100644
+-index b8c7ccd..0000000
+---- a/README_DESIGN.md
+-+++ /dev/null
+-@@ -1 +0,0 @@
+--﻿# 🎨 NovaPrata Labs - Premium UI/UX Edition\n\n## Versão 2.0: Enterprise-Grade Dashboard\n\nO **NovaPrata Labs** foi completamente reimaginado visualmente. Mantendo 100% da funcionalidade, a interface foi elevada ao padrão de **Linear, Vercel e Stripe**.\n\n---\n\n## 🚀 Quick Start\n\n### Instalar\n```bash\nnpm install\n```\n\n### Rodar\n```bash\nnpm run dev\n```\n\nAcesse: `http://localhost:3000`\n\n---\n\n## ✨ O Que Mudou?\n\n### Visualmente\n✅ **UI 100% Refinada** - Cores, tipografia, espaçamento\n✅ **Design System Coeso** - Componentes consistentes\n✅ **Premium Feel** - Sombras leves, borders suaves, transições smooths\n✅ **Responsiveness Perfeita** - Mobile, tablet, desktop\n✅ **Micro-interações** - Hover, focus, active states\n✅ **Acessibilidade** - Contraste, keyboard nav\n\n### Funcionalmente\n✅ **Nada Quebrou** - Todo código original preservado\n✅ **APIs Intactas** - Backend não foi tocado\n✅ **Lógica Mantida** - Mesma funcionalidade\n✅ **Dados Sincronizados** - PostgreSQL/Neon funcionando\n\n---\n\n## 📁 Estrutura\n\n```\nsrc/\n├── components/\n│   ├── ui/\n│   │   ├── badge.tsx          ✨ Updated\n│   │   ├── button.tsx         ✨ Updated\n│   │   ├── card.tsx           ✨ Updated\n│   │   ├── input.tsx          ✨ Updated\n│   │   └── modal.tsx          ✨ Updated\n│   └── features/\n│       └── assets/\n│           └── AssetForm.tsx  ✨ Updated\n├── app/\n│   ├── (dashboard)/\n│   │   ├── layout.tsx         ✨ Updated (Sidebar + Topbar)\n│   │   ├── dashboard/page.tsx ✨ Updated\n│   │   └── assets/page.tsx    ✨ Updated\n│   └── (auth)/\n│       └── login/page.tsx     (Preservado)\n└── lib/\n    └── utils.ts\n\nNEW FILES:\n├── DESIGN_SYSTEM.md     🆕 Design system documentation\n├── UI_TRANSFORMATION.md 🆕 Antes vs depois\n├── VISUAL_GUIDE.md      🆕 Guia visual detalhado\n└── README_DESIGN.md     🆕 Este arquivo\n```\n\n---\n\n## 🎨 Design Highlights\n\n### 1. Componentes Refinados\n\n**Card**\n- Borders suaves com transparência\n- Sombras leves com hover effect\n- Transições smooth\n\n**Badge**\n- Cores semânticas (success, warning, destructive)\n- Backgrounds com opacidade\n- Borders sutis\n\n**Button**\n- Estados claros (hover, active, disabled)\n- Feedback visual ao clicar\n- Variantes bem definidas\n\n**Input & Select**\n- Focus states acessíveis\n- Backgrounds escuros premium\n- Placeholders descritivos\n\n**Modal**\n- Backdrop blur effect\n- Animações suaves\n- Escape key para fechar\n\n### 2. Layout Premium\n\n**Sidebar**\n- Backdrop blur\n- Estado ativo com border + background\n- Ícones otimizados\n- Collapse elegante\n\n**Topbar**\n- Height reduzida (h-14)\n- Search bar premium\n- Notificação discreta\n- Alinhamento perfeito\n\n**Main Content**\n- Background gradiente sutil\n- Padding responsivo\n- Espaçamento generoso\n\n### 3. Pages Redesenhadas\n\n**Dashboard**\n- Stat cards com hover effect\n- Ativos recentes compacto\n- Status distribution visual\n- Grid responsivo\n\n**Assets Table**\n- Row hover elegante\n- Actions reveal ao hover\n- Responsiveness mobile-first\n- Status badges suaves\n\n**AssetForm**\n- Labels premium (uppercase + tracking)\n- Grid responsivo (1 → 2 cols)\n- Placeholders descritivos\n- Spacing consistente\n\n---\n\n## 🎯 Design Principles\n\n### 1. Elegância Sutil\n- Sombras leves, não pesadas\n- Cores com opacidade\n- Espaçamento generoso\n- Borders com transparência\n\n### 2. Hierarquia Clara\n- Tipografia bem definida\n- Cores com propósito\n- Tamanhos proporcionais\n- Espaçamento intencional\n\n### 3. Feedback Visual\n- Hover states em tudo\n- Focus states acessíveis\n- Transições suaves (200ms)\n- Activestate com scale\n\n### 4. Responsiveness\n- Mobile-first approach\n- Breakpoints claros (sm, md, lg)\n- Colunas ocultáveis\n- Padding responsivo\n\n### 5. Consistência\n- Design system unificado\n- Cores padronizadas\n- Espaçamento regular\n- Tipografia clara\n\n---\n\n## 📐 Componentes Reutilizáveis\n\n### Card\n```tsx\n<Card>\n  <CardHeader>\n    <CardTitle>Título</CardTitle>\n    <CardDescription>Descrição</CardDescription>\n  </CardHeader>\n  <CardContent>\n    Conteúdo\n  </CardContent>\n</Card>\n```\n\n### Badge\n```tsx\n<Badge variant=\"success\">Disponível</Badge>\n<Badge variant=\"warning\">Manutenção</Badge>\n<Badge variant=\"destructive\">Offline</Badge>\n```\n\n### Button\n```tsx\n<Button>Primary</Button>\n<Button variant=\"outline\">Outline</Button>\n<Button variant=\"ghost\">Ghost</Button>\n<Button variant=\"destructive\">Delete</Button>\n```\n\n### Input\n```tsx\n<Input placeholder=\"Buscar...\" />\n<Input type=\"email\" placeholder=\"email@example.com\" />\n```\n\n### Modal\n```tsx\n<Modal isOpen={isOpen} onClose={onClose} title=\"Título\">\n  Conteúdo\n</Modal>\n```\n\n---\n\n## 🎨 Paleta de Cores\n\n### Backgrounds\n- `bg-zinc-950` - Fundo principal\n- `bg-zinc-900` - Cards e sub-backgrounds\n- `bg-zinc-800/50` - Hover states\n\n### Text\n- `text-zinc-100` - Primary text\n- `text-zinc-300` - Secondary text\n- `text-zinc-400` - Muted text\n- `text-zinc-500` - Very muted\n\n### Borders\n- `border-zinc-800/50` - Standard border\n- `border-zinc-700/50` - Hover border\n\n### Status\n- `emerald-500` - Success (green)\n- `amber-500` - Warning (orange)\n- `red-500` - Destructive (red)\n- `primary` - Action color\n\n---\n\n## 📱 Responsiveness\n\n### Mobile (< 640px)\n- Grid 1-2 columns\n- Sidebar colapsável\n- Padding: p-4\n- Icons: h-4 w-4\n- Text: text-xs, text-sm\n\n### Tablet (640px - 1024px)\n- Grid 2-3 columns\n- Sidebar expandido\n- Padding: p-6\n- Icons: h-4 w-4, h-5 w-5\n- Text: text-sm\n\n### Desktop (> 1024px)\n- Grid 3-4+ columns\n- Sidebar sempre visível\n- Padding: p-8\n- Icons: h-5 w-5\n- Text: text-sm, text-base\n\n---\n\n## 🎓 Como Manter o Padrão\n\n### Ao Adicionar Novo Componente\n\n1. **Use os componentes base** (Card, Badge, Button, Input)\n2. **Siga o spacing** (gap-4, space-y-4, p-5 sm:p-6)\n3. **Aplique cores corretas** (zinc-900, zinc-100, text-zinc-400)\n4. **Adicione hover states** (hover:bg-zinc-800/50)\n5. **Use transições** (transition-all duration-200)\n6. **Faça responsivo** (sm:, md:, lg:)\n7. **Verifique acessibilidade** (contraste, keyboard nav)\n\n### Template para Novo Card\n```tsx\n<Card>\n  <CardHeader>\n    <CardTitle className=\"text-base\">Título</CardTitle>\n    <CardDescription>Descrição</CardDescription>\n  </CardHeader>\n  <CardContent>\n    <div className=\"space-y-4\">\n      {/* content */}\n    </div>\n  </CardContent>\n</Card>\n```\n\n### Template para Novo Row\n```tsx\n<tr className=\"border-b border-zinc-800/30 hover:bg-zinc-800/30 transition-colors duration-200\">\n  <td className=\"p-4 align-middle\">\n    {/* content */}\n  </td>\n</tr>\n```\n\n---\n\n## 🔍 Variações de Cores\n\n### Button Variants\n```\ndefault:     bg-primary text-white hover:bg-primary/90\noutline:     border-zinc-700/50 hover:bg-zinc-900/50\nghost:       hover:bg-zinc-900/50 hover:text-zinc-200\ndestructive: bg-red-500/10 text-red-400 border-red-500/20\n```\n\n### Badge Variants\n```\ndefault:     bg-primary/10 text-primary border-primary/20\nsuccess:     bg-emerald-500/10 text-emerald-400 border-emerald-500/20\nwarning:     bg-amber-500/10 text-amber-400 border-amber-500/20\ndestructive: bg-red-500/10 text-red-400 border-red-500/20\nghost:       bg-zinc-900/50 text-zinc-300 border-zinc-700/30\n```\n\n---\n\n## 📚 Documentação\n\n- **DESIGN_SYSTEM.md** - Sistema de design completo\n- **UI_TRANSFORMATION.md** - Detalhes das mudanças\n- **VISUAL_GUIDE.md** - Guia visual com exemplos\n- **README_DESIGN.md** - Este arquivo\n\n---\n\n## ✅ Checklist Final\n\n- [x] Componentes UI refinados\n- [x] Layout base redesenhado\n- [x] Dashboard transformado\n- [x] Tabela de assets melhorada\n- [x] Formulários premium\n- [x] Sidebar elegante\n- [x] Topbar limpa\n- [x] Responsiveness total\n- [x] Acessibilidade mantida\n- [x] Documentação completa\n- [x] Nenhuma feature quebrada\n\n---\n\n## 🎯 Próximos Passos Opcionais\n\nSe desejar ainda mais refinamento:\n\n1. **Adicionar Dark/Light Theme** - Toggle tema\n2. **Implementar Animations** - Framer Motion\n3. **Criar Loading Skeletons** - Para melhor UX\n4. **Adicionar Toast Notifications** - Feedback\n5. **Implementar Advanced Filtering** - Tabela\n6. **Criar Onboarding** - Para novos usuários\n7. **Adicionar Analytics** - Dashboard expandido\n8. **Melhorar Data Visualization** - Gráficos\n\n---\n\n## 📞 Suporte\n\nPara dúvidas sobre o design:\n\n1. Consulte **VISUAL_GUIDE.md** para exemplos\n2. Verifique **DESIGN_SYSTEM.md** para padrões\n3. Olhe exemplos em componentes existentes\n4. Mantenha a consistência com `cn()` util\n\n---\n\n## 🏆 Resultado\n\n**NovaPrata Labs é agora um dashboard premium que:**\n\n✨ Parece enterprise-grade  \n⚡ Funciona perfeitamente  \n📱 É totalmente responsivo  \n♿ É acessível  \n🎨 É consistente  \n🚀 É rápido  \n💎 É premium  \n\n---\n\n**Status: ✅ Pronto para Produção Premium**\n\n*Built with care for the best user experience.*\n"
+-\ No newline at end of file
+-diff --git a/STATUS_SISTEMA.md b/STATUS_SISTEMA.md
+-index 970e044..0eeb3b4 100644
+---- a/STATUS_SISTEMA.md
+-+++ b/STATUS_SISTEMA.md
+-@@ -19,6 +19,9 @@
+- - Rede: visao geral e criacao de segmentos.
+- - Relatorios: indicadores, exportacao e download.
+- - Cofre: listagem/criacao de credenciais e reveal por id.
+-+- Chamados: listagem, criacao, atualizacao e exclusao (suporte interno com categoria/prioridade/status/recorrencia).
+-+- Certificados/Licencas: listagem, criacao, atualizacao e exclusao, com calculo de dias para vencer.
+-+- Fornecedores: listagem, criacao, atualizacao e exclusao, com controle de contrato.
+- 
+- ### Dashboard / BI
+- - Cards de KPI com dados reais.
+-@@ -62,6 +65,12 @@
+- | `/api/sectors` | GET | Sim | Sim |
+- | `/api/vault/credentials` | GET, POST | Sim | Sim |
+- | `/api/vault/credentials/[id]/reveal` | POST | Sim | Sim |
+-+| `/api/tickets` | GET, POST | Sim | Sim |
+-+| `/api/tickets/[id]` | PUT, DELETE | Sim | Sim |
+-+| `/api/documents` | GET, POST | Sim | Sim |
+-+| `/api/documents/[id]` | PUT, DELETE | Sim | Sim |
+-+| `/api/suppliers` | GET, POST | Sim | Sim |
+-+| `/api/suppliers/[id]` | PUT, DELETE | Sim | Sim |
+- 
+- ## 5) Pontos de atencao (sem quebra funcional)
+- - Pode ocorrer `503` transitorio quando o banco demora para responder (comum em ambiente local/cloud cold start).
+-diff --git a/UI_TRANSFORMATION.md b/UI_TRANSFORMATION.md
+-deleted file mode 100644
+-index 588fc92..0000000
+---- a/UI_TRANSFORMATION.md
+-+++ /dev/null
+-@@ -1,340 +0,0 @@
+--﻿# 🎨 Transformação UI/UX - NovaPrata Labs
+--
+--## Executive Summary
+--
+--O **NovaPrata Labs** foi transformado de uma aplicação funcional em um **dashboard premium ao nível de Linear, Vercel e Stripe**. Mantendo 100% da funcionalidade, a experiência visual foi completamente elevada para padrões enterprise.
+--
+-----
+--
+--## 📊 Antes vs Depois
+--
+--### Dashboard
+--**ANTES:**
+--- Espaçamento excessivo (gap-8)
+--- Titulos grandes demais
+--- Cards com sombras pesadas
+--- Sem hierarquia clara
+--- Primeira tela com scroll necessário
+--
+--**DEPOIS:**
+--- Espaçamento refinado (gap-6, space-y-4)
+--- Titulos proporcionais (text-2xl sm:text-3xl)
+--- Cards elegantes com sombras leves
+--- Hierarquia visual clara
+--- Primeira tela visual sem scroll
+--- Cards stat com layout horizontal
+--
+--### Tabela de Assets
+--**ANTES:**
+--- Linhas planas e sem interesse
+--- Ícones grandes demais
+--- Status badges com cores genéricas
+--- Ações sempre visíveis
+--- Sem responsiveness mobile adequada
+--
+--**DEPOIS:**
+--- Linhas com hover elegante
+--- Ícones pequenos e discretos
+--- Badges com cores suaves e borders
+--- Ações aparecem ao hover
+--- Responsiveness perfeita (sm:, md:, lg:)
+--- Colunas ocultáveis em mobile
+--
+--### Sidebar
+--**ANTES:**
+--- Menu básico
+--- Estado ativo sem destaque
+--- Ícones grandes
+--- Sem backdrop blur
+--
+--**DEPOIS:**
+--- Menu premium com backdrop blur
+--- Estado ativo com border e background
+--- Ícones otimizados (h-4 w-4 → h-5 w-5)
+--- Transições suaves
+--- Botão collapse elegante
+--
+--### Topbar
+--**ANTES:**
+--- Muitos elementos sem alinhamento
+--- Search bar básica
+--- Espaçamento desproporcionado
+--- Sem responsiveness
+--
+--**DEPOIS:**
+--- Alinhamento perfeito
+--- Search bar premium
+--- Espaçamento consistente
+--- Totalmente responsivo
+--- Notificação com badge discreto
+--
+--### Formulários
+--**ANTES:**
+--- Labels genéricos
+--- Inputs sem destaque
+--- Sem placeholders
+--- Espaçamento irregular
+--
+--**DEPOIS:**
+--- Labels uppercase, semibold, tracking-wide
+--- Inputs premium com focus states
+--- Placeholders descritivos
+--- Espaçamento grid perfeito (1 → 2 cols responsivo)
+--- Textarea sem resize
+--
+-----
+--
+--## 🎯 Áreas de Mudança
+--
+--### 1. Componentes UI Base (`src/components/ui/`)
+--
+--#### ✅ Card
+--```diff
+--- rounded-xl border bg-card text-card-foreground shadow
+--+ rounded-lg border border-zinc-800/50 bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow
+--```
+--
+--#### ✅ Badge
+--```diff
+--- border-transparent bg-primary text-primary-foreground shadow
+--+ bg-primary/10 text-primary border border-primary/20
+--```
+--
+--#### ✅ Button
+--```diff
+--- rounded-md bg-primary text-primary-foreground shadow hover:bg-primary/90
+--+ rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 active:scale-95 transition-all duration-200
+--```
+--
+--#### ✅ Input
+--```diff
+--- rounded-md border border-input bg-transparent px-3 py-1
+--+ rounded-lg border border-zinc-700/50 bg-zinc-900/50 px-3 py-2 focus-visible:bg-zinc-900/70 focus-visible:ring-primary/30
+--```
+--
+--#### ✅ Modal
+--```diff
+--- bg-card w-full max-w-lg rounded-xl border shadow-2xl
+--+ bg-zinc-900 border border-zinc-800/50 w-full max-w-lg rounded-xl shadow-2xl
+--```
+--
+--### 2. Layout (`src/app/(dashboard)/layout.tsx`)
+--
+--#### Sidebar
+--- Background com blur (`bg-zinc-950/80 backdrop-blur-sm`)
+--- Estado ativo com border (`bg-primary/20 text-primary border border-primary/30`)
+--- Icons menores e alinhados
+--- Espaçamento vertical reduzido (`gap-0.5`)
+--- Hover states suaves
+--
+--#### Topbar
+--- Altura reduzida (`h-14`)
+--- Search bar premium
+--- Alinhamento melhorado
+--- Responsiveness total
+--
+--#### Main
+--- Background gradiente sutil
+--- Padding responsivo
+--
+--### 3. Dashboard (`src/app/(dashboard)/dashboard/page.tsx`)
+--
+--- Header mais limpo e hierárquico
+--- Stat cards com layout horizontal
+--- Recents section compacta
+--- Status distribution com progress bars elegantes
+--- Grid responsivo
+--
+--### 4. Assets (`src/app/(dashboard)/assets/page.tsx`)
+--
+--- Search input premium
+--- Tabela completamente redesenhada
+--- Row actions com hover reveal
+--- Responsiveness mobile-first
+--- Status badges com cores suaves
+--
+--### 5. AssetForm (`src/components/features/assets/AssetForm.tsx`)
+--
+--- Labels premium com uppercase + tracking-wide
+--- Grid responsivo (1 → 2 cols)
+--- Placeholders descritivos
+--- Select inputs estilizados
+--- Textarea sem resize
+--- Spacing consistente
+--
+-----
+--
+--## 🎨 Design Principles Aplicados
+--
+--### 1. **Elegância Sutil**
+--- Sombras leves ao invés de pesadas
+--- Borders com transparência (`/50`)
+--- Backgrounds com opacidade (`/50`, `/70`)
+--
+--### 2. **Hierarquia Clara**
+--- Tipografia bem definida
+--- Cores com propósito
+--- Espaçamento intencional
+--
+--### 3. **Feedback Visual**
+--- Hover states em tudo que é interativo
+--- Transições suaves (200ms padrão)
+--- Focus states acessíveis
+--
+--### 4. **Responsiveness**
+--- Mobile-first
+--- Breakpoints claros (sm, md, lg)
+--- Colunas ocultáveis em mobile
+--
+--### 5. **Consistência**
+--- Padding padrão (p-5 sm:p-6)
+--- Gap padrão (gap-4)
+--- Border padrão (border-zinc-800/50)
+--- Rounded padrão (rounded-lg)
+--
+-----
+--
+--## 📱 Responsiveness
+--
+--### Mobile (< 640px)
+--- Topbar simplificado
+--- Sidebar colapsável
+--- Grid single column
+--- Padding reduzido (p-4)
+--- Icons menores
+--
+--### Tablet (640px - 1024px)
+--- Sidebar expandido
+--- Grid 2-3 colunas
+--- Padding médio (p-6)
+--- Table com algumas colunas ocultas
+--
+--### Desktop (> 1024px)
+--- Layout completo
+--- Sidebar sempre visível
+--- Grid 4+ colunas
+--- Padding máximo (p-8)
+--- Table com todas as colunas
+--
+-----
+--
+--## 🎯 Checklist de Qualidade
+--
+--✅ **Visual**
+--- [x] Cores coerentes e profissionais
+--- [x] Tipografia bem definida
+--- [x] Espaçamento consistente
+--- [x] Bordas suaves
+--
+--✅ **Interatividade**
+--- [x] Hover states em todos elementos
+--- [x] Focus states acessíveis
+--- [x] Transições suaves
+--- [x] Feedback visual claro
+--
+--✅ **Responsiveness**
+--- [x] Mobile-first approach
+--- [x] Breakpoints bem definidos
+--- [x] Colunas adaptáveis
+--- [x] Padding responsivo
+--
+--✅ **Funcionalidade**
+--- [x] Nenhuma feature quebrada
+--- [x] Backend intacto
+--- [x] APIs não alteradas
+--- [x] Lógica preservada
+--
+--✅ **Acessibilidade**
+--- [x] Contraste adequado
+--- [x] Focus states visíveis
+--- [x] Keyboard navigation
+--- [x] Sem texto pequeno demais
+--
+-----
+--
+--## 🚀 Métricas de Melhoria
+--
+--### Antes
+--- **Visual Score**: 6/10 (Funcional, sem polish)
+--- **Premium Feel**: 3/10 (Básico)
+--- **Responsiveness**: 5/10 (Parcial)
+--- **Consistency**: 6/10 (Irregular)
+--
+--### Depois
+--- **Visual Score**: 9/10 (Premium e polido)
+--- **Premium Feel**: 9/10 (Linear/Vercel level)
+--- **Responsiveness**: 10/10 (Perfeito)
+--- **Consistency**: 10/10 (100% consistente)
+--
+-----
+--
+--## 💾 Arquivos Modificados
+--
+--```
+--✅ src/components/ui/card.tsx
+--✅ src/components/ui/badge.tsx
+--✅ src/components/ui/button.tsx
+--✅ src/components/ui/input.tsx
+--✅ src/components/ui/modal.tsx
+--✅ src/app/(dashboard)/layout.tsx
+--✅ src/app/(dashboard)/dashboard/page.tsx
+--✅ src/app/(dashboard)/assets/page.tsx
+--✅ src/components/features/assets/AssetForm.tsx
+--```
+--
+--**Todos os arquivos mantêm 100% da funcionalidade!**
+--
+-----
+--
+--## 🎓 Lições de Design Aplicadas
+--
+--### De Premium SaaS
+--1. **Linear** - Minimalismo e espaçamento
+--2. **Vercel** - Tipografia e cores suaves
+--3. **Stripe** - Feedback visual e micro-interações
+--4. **Notion** - Hierarquia e legibilidade
+--
+--### Técnicas Utilizadas
+--- [ ] Backdrop blur para depth
+--- [ ] Opacity layers para subtleza
+--- [ ] Color semantic para context
+--- [ ] Hover reveal para clareza
+--- [ ] Responsive typography
+--- [ ] Generous whitespace
+--- [ ] Consistent transitions
+--
+-----
+--
+--## 🎯 Resultado Final
+--
+--O **NovaPrata Labs** agora é um dashboard que:
+--
+--✨ **Parece premium** - Visual ao nível de Linear/Vercel  
+--⚡ **Funciona perfeitamente** - 100% do código original preservado  
+--📱 **É responsivo** - Mobile, tablet e desktop  
+--♿ **É acessível** - Contraste e keyboard navigation  
+--🎨 **É consistente** - Design system coeso  
+--🚀 **É rápido** - Transições e animações otimizadas  
+--
+-----
+--
+--## 📝 Próximos Passos Opcionais
+--
+--Se desejar ainda mais refinamento:
+--
+--1. **Adicionar Dark/Light Theme Toggle**
+--2. **Implementar Animations com Framer Motion**
+--3. **Criar More Detailed Micro-interactions**
+--4. **Adicionar Loading Skeletons**
+--5. **Implementar Toast Notifications**
+--6. **Criar Onboarding Walkthrough**
+--7. **Adicionar Analytics Dashboard**
+--8. **Implementar Advanced Filtering**
+--
+-----
+--
+--## ✅ Conclusão
+--
+--O NovaPrata Labs foi **completamente transformado visualmente** mantendo toda a funcionalidade intacta. É agora um dashboard **enterprise-grade** que compete com os melhores do mercado.
+--
+--**Status: ✅ Pronto para produção premium**
+-diff --git a/VISUAL_GUIDE.md b/VISUAL_GUIDE.md
+-deleted file mode 100644
+-index df97a93..0000000
+---- a/VISUAL_GUIDE.md
+-+++ /dev/null
+-@@ -1 +0,0 @@
+--﻿# 🎨 Visual Guide - NovaPrata Labs Premium Edition\n\n## Guia Visual das Mudanças\n\n---\n\n## 📍 Dashboard Page\n\n### Layout Geral\n```\n┌─────────────────────────────────────────────────────────────┐\n│  Dashboard                              📅 [Today's Date]  │  ← Topbar (h-14)\n├─────────────────────────────────────────────────────────────┤\n│                                                             │\n│  Dashboard                                                  │  ← Page Header\n│  Visão geral de seus ativos e operações                   │\n│                                                             │\n│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐    │  ← Stat Cards (4 cols)\n│  │  📦      │ │  🔧     │ │  👥     │ │  ⚠️     │    │\n│  │ Assets   │ │ Maint   │ │ Users   │ │ Alerts  │    │\n│  │   42     │ │   7     │ │   15    │ │   12    │    │\n│  └──────────┘ └──────────┘ └──────────┘ └──────────┘    │\n│                                                             │\n│  ┌────────────────────────────┐  ┌──────────────────┐   │  ← 2-col grid\n│  │ Ativos Recentes            │  │ Status dos Ativos│   │\n│  │ • Notebook Dell (TI-001)   │  │ ■ Disponível: 35 │   │\n│  │ • Monitor LG (TI-002)      │  │ ■ Em Uso: 7      │   │\n│  │ • Servidor HP (TI-003)     │  │ ■ Manutenção: 0  │   │\n│  └────────────────────────────┘  └──────────────────┘   │\n│                                                             │\n└─────────────────────────────────────────────────────────────┘\n```\n\n### Stat Cards - Detalhes\n```\n┌─────────────────────────┐\n│ Total de Ativos  [📦]   │  ← CardHeader flex row\n│ 42                      │  ← Large number (text-2xl sm:text-3xl)\n│ Equipamentos cadastrados│  ← Small description\n└─────────────────────────┘\n\nEstado: group hover:border-zinc-700/50\nHover: Sombra leve + border mais visible\n```\n\n### Recents Section - Detalhes\n```\n┌────────────────────────────────────────────┐\n│ Ativos Recentes                            │\n│ ─────────────────────────────────────────  │\n│ ┌──────────────────────────────────────┐  │\n│ │ TI-001 Notebook Dell     15/04/2026   │  │ ← Hover: bg-zinc-800/50\n│ │ Notebook • Tecnologia                 │  │\n│ ├──────────────────────────────────────┤  │\n│ │ TI-002 Monitor LG        14/04/2026   │  │ ← Hover: bg-zinc-800/50\n│ │ Monitor • Recursos Humanos            │  │\n│ └──────────────────────────────────────┘  │\n└────────────────────────────────────────────┘\n\nEspacamento: space-y-2 (compacto)\nHover: Transição 200ms smooth\n```\n\n---\n\n## 📍 Assets Page\n\n### Topbar\n```\n┌──────────────────────────────────────────────┐\n│  🔍 Buscar por nome...    🔔   👤 Admin     │  ← h-14 (reduzido)\n└──────────────────────────────────────────────┘\n\nSearch: Input premium com border-zinc-700/50 + placeholder zinc-600\nBell: Badge de notificação pequeno (h-1.5 w-1.5)\nProfile: Avatar quadrado com border\n```\n\n### Toolbar\n```\n┌──────────────────────────────────────────────┐\n│  Ativos de TI          [Sincronizar] [+ Novo]│\n│  Gerencie todos os seus equipamentos         │\n└──────────────────────────────────────────────┘\n```\n\n### Table Header\n```\n┌────┬─────────┬────────┬──────────┬────────┐\n│ Eq │ Tipo    │ Status │ Setor    │ Ações  │  ← bg-zinc-900/50\n│    │(hidden) │        │(hidden)  │        │     border-zinc-800/50\n└────┴─────────┴────────┴──────────┴────────┘\n\nText: text-xs text-zinc-400 (subtle)\nResponsiveness: Colunas com hidden sm:, md:, lg:\n```\n\n### Table Rows\n```\n┌─────────────────────────────────────────────────┐\n│ [📦] Notebook Dell         │ Disponível │ [⚙️] │  ← Hover: bg-zinc-800/30\n│      TI-001                │ VERDE      │ [✏️] │  ← Actions appear on hover\n│      Notebook • Tech       │            │ [🗑️] │\n├─────────────────────────────────────────────────┤\n│ [🖥️] Monitor LG            │ Em Uso     │      │  ← No hover yet\n│      TI-002                │ BLUE       │      │\n│      Monitor • RH          │            │      │\n└─────────────────────────────────────────────────┘\n\nRow Hover: \n  - Background: bg-zinc-800/30\n  - Transição: transition-colors duration-200\n  - Actions aparecem: opacity-0 → opacity-100\n\nStatus Badge:\n  - DISPONÍVEL: success (green)\n  - EM_USO: default (blue)\n  - MANUTENCAO: warning (amber)\n\nAction Buttons:\n  - Size: h-7 w-7\n  - Wrench: text-blue-400 hover:bg-blue-500/10\n  - Pencil: text-primary hover:bg-primary/10\n  - Trash: text-red-400 hover:bg-red-500/10\n```\n\n---\n\n## 📍 Sidebar\n\n### Expandido (w-64)\n```\n┌─────────────────────┐\n│ [🖥️] NovaPrata Labs      │  ← h-14, p-4\n│ ─────────────────   │\n│ [📊] Dashboard      │  ← Active: bg-primary/20 border-primary/30\n│ [📦] Ativos         │  ← Hover: bg-zinc-800/50\n│ [👥] Pessoas        │\n│ [🔐] Cofre          │\n│ [🌐] Rede           │\n│ [🔧] Manutenção     │\n│ [📈] Relatórios     │\n│ ─────────────────   │\n│ [⚙️] Configurações   │  ← Bottom section\n│ [🚪] Sair           │\n└─────────────────────┘\n\nItem Ativo:\n  - Background: bg-primary/20\n  - Border: border border-primary/30\n  - Text: text-primary\n  - Height: h-11 (reduzido para compacto)\n  - Padding: p-2 (reduzido)\n\nItem Inativo:\n  - Text: text-zinc-400\n  - Hover: text-zinc-200 bg-zinc-800/50\n\nIcon:\n  - Size: h-4 w-4 (pequeno) / h-5 w-5 (médio)\n  - Flex-shrink: Para não expandir\n  - Alinhamento: min-w-[...] para consistência\n```\n\n### Colapsado (w-16)\n```\n┌──┐\n│🖥️│  ← Logo apenas\n├──┤\n│📊│  ← Icons only\n│📦│\n│👥│\n│🔐│\n│🌐│\n│🔧│\n│📈│\n├──┤\n│⚙️│  ← Bottom icons\n│🚪│\n└──┘\n    \n    └─ Botão expand flutuante\n       (position: -right-4 top-14)\n       (h-7 w-7 rounded-full)\n```\n\n---\n\n## 📍 Modal / Formulário\n\n### Estrutura\n```\n┌─────────────────────────────────────────┐\n│ Novo Ativo                          [✕] │  ← Header com border-bottom\n│ ─────────────────────────────────────────│\n│                                         │\n│ TAG                                     │  ← Label uppercase semibold\n│ [________________]                      │  ← Input premium\n│                                         │\n│ NOME                                    │\n│ [________________]                      │\n│                                         │\n│ TIPO                  MARCA             │  ← 2-col grid responsivo\n│ [Notebook         ]   [Dell]            │\n│                                         │\n│ MODELO                SETOR             │\n│ [Inspiron 15]     [Tecnologia    ]      │\n│                                         │\n│ STATUS                CRITICIDADE       │\n│ [Disponível   ]   [Média      ]         │\n│                                         │\n│ OBSERVAÇÕES                             │\n│ [                                  ]    │\n│ [                                  ]    │  ← textarea (min-h-[80px])\n│                                         │\n│ ─────────────────────────────────────────│\n│                    [Cancelar] [Criar Ativo]│  ← Footer\n│                                         │\n└─────────────────────────────────────────┘\n\nModal Backdrop:\n  - Background: bg-black/40 (suave)\n  - Blur: backdrop-blur-sm\n  - Animation: fade-in 300ms\n\nModal Container:\n  - Background: bg-zinc-900\n  - Border: border-zinc-800/50\n  - Border-radius: rounded-xl\n  - Shadow: shadow-2xl\n  - Animation: zoom-in-95 300ms\n  - Size: max-w-lg (500px)\n\nLabel Style:\n  - text-xs font-semibold uppercase tracking-wide\n  - text-zinc-300\n  - Spacing: mt-2 mb-2 (space-y-2)\n\nInputs:\n  - All: rounded-lg border-zinc-700/50 bg-zinc-900/50\n  - Focus: bg-zinc-900/70 ring-1 ring-primary/30\n  - Placeholder: text-zinc-600\n  - Padding: px-3 py-2\n\nResponsiveness:\n  - Grid: grid-cols-1 sm:grid-cols-2\n  - Padding: p-5 sm:p-6\n  - Labels: text-xs consistently\n```\n\n---\n\n## 🎨 Cores em Ação\n\n### Status Badges\n```\n┌───────────────────┐\n│ DISPONÍVEL        │  ← bg-emerald-500/10 + text-emerald-400 + border\n└───────────────────┘\n\n┌───────────────────┐\n│ EM_USO            │  ← bg-primary/10 + text-primary + border\n└───────────────────┘\n\n┌───────────────────┐\n│ MANUTENCAO        │  ← bg-amber-500/10 + text-amber-400 + border\n└───────────────────┘\n```\n\n### Button States\n```\nDefault (Primary):\n  Idle:    bg-primary text-white\n  Hover:   bg-primary/90 (mais escuro)\n  Click:   scale-95 (feedback)\n  Focus:   ring-1 ring-primary\n\nOutline:\n  Idle:    border-zinc-700/50 bg-background\n  Hover:   bg-zinc-900/50 border-zinc-600/50\n  Click:   scale-95\n\nGhost:\n  Idle:    transparent text-zinc-400\n  Hover:   bg-zinc-900/50 text-zinc-200\n  Click:   scale-95\n\nDestructive:\n  Idle:    bg-red-500/10 text-red-400 border-red-500/20\n  Hover:   bg-red-500/20\n  Click:   scale-95\n```\n\n---\n\n## ⚡ Transições e Animações\n\n### Standard Transitions\n```\nHover States:\n  duration-200\n  transition-all / transition-colors / transition-opacity\n\nExample:\n  hover:bg-zinc-800/30 transition-colors duration-200\n\nModal Animations:\n  Modal: animate-in zoom-in-95 duration-300\n  Backdrop: animate-in fade-in duration-300\n\nProgress Bars:\n  duration-500 (mais lento para visual smooth)\n\nScale Feedback:\n  active:scale-95 (click feedback)\n\nOpacity Reveal:\n  opacity-0 group-hover:opacity-100 transition-opacity\n```\n\n---\n\n## 📱 Responsiveness Breakpoints\n\n### Mobile (< 640px)\n```\nTopbar:\n  h-14 (reduzido)\n  px-4 (padding reduzido)\n  Search: max-w-xs\n  User info: hidden\n\nDashboard:\n  Grid: grid-cols-2 (2 stat cards por linha)\n  Text: text-xs (smaller)\n  Padding: p-4\n\nTable:\n  Colunas ocultas: type, setor, criticidade\n  Icons: h-4 w-4\n  Actions: h-7 w-7\n  Responsive layout\n\nSidebar:\n  Colapsável obrigatoriamente em mobile\n  Width: w-16 (apenas ícones)\n```\n\n### Tablet (640px - 1024px)\n```\nDashboard:\n  Grid: grid-cols-3 (3 stat cards)\n  Text: text-sm\n  Padding: p-6\n\nTable:\n  Mostrar: type, setor\n  Ocultar: criticidade\n\nSidebar:\n  Colapsável opcionalmente\n  Width: w-64 (com labels)\n\nForm:\n  Grid: grid-cols-2 (2 inputs por linha)\n```\n\n### Desktop (> 1024px)\n```\nDashboard:\n  Grid: grid-cols-4 (4 stat cards)\n  Secundário: grid-cols-7 (4 + 3)\n  Text: text-sm / text-base\n  Padding: p-8\n\nTable:\n  Mostrar: todos as colunas\n  Full responsive\n\nSidebar:\n  Sempre visível\n  Width: w-64\n  Não colapsável por padrão\n\nForm:\n  Grid: grid-cols-2\n  max-w-lg modal\n```\n\n---\n\n## ✨ Premium Touches\n\n### Subtle Effects\n- **Backdrop Blur**: Modais e topbar\n- **Color Opacity**: /10, /20, /30, /50 para refinamento\n- **Shadow**: shadow-sm (leve) ao invés de pesada\n- **Border Opacity**: border-zinc-800/50 para suavidade\n\n### Micro-interactions\n- **Hover**: Sempre presente, suave, contextual\n- **Focus**: Ring sutil com cor primary\n- **Active**: Scale 95% para feedback\n- **Disabled**: Opacidade 50%, sem cursor\n\n### Typography\n- **Labels**: UPPERCASE, font-semibold, tracking-wide (premium feel)\n- **Titles**: font-bold, tracking-tight (control)\n- **Body**: font-normal, clear hierarchy\n- **Secondary**: text-zinc-500/600 (discreta)\n\n---\n\n## 🎯 Checklist Visual\n\nAo adicionar nova feature, verificar:\n\n- [ ] Labels em uppercase com tracking-wide\n- [ ] Inputs rounded-lg com border-zinc-700/50\n- [ ] Focus states com ring-primary/30\n- [ ] Hover states em tudo interativo\n- [ ] Transições 200ms smooth\n- [ ] Spacing: gap-4 ou space-y-4\n- [ ] Padding: p-5 sm:p-6\n- [ ] Borders: border-zinc-800/50\n- [ ] Text colors: zinc-{300,400,500}\n- [ ] Responsive: sm:, md:, lg:\n- [ ] Icons: h-4 w-4 ou h-5 w-5 (not bigger!)\n- [ ] Badges: com borders e backgrounds suaves\n\n---\n\n## 📚 Referência Rápida\n\n### Cores Principais\n```\nBackground:    bg-zinc-950 ou bg-zinc-900\nCard:          bg-card (zinc-900)\nBorder:        border-zinc-800/50\nText Primary:  text-zinc-100 ou text-zinc-200\nText Secondary: text-zinc-400 ou text-zinc-500\nHover:         bg-zinc-800/50 ou hover:text-zinc-200\n```\n\n### Spacing\n```\nSmall:  p-2, gap-1.5, space-y-2\nMedium: p-4, gap-3, space-y-4\nLarge:  p-6, gap-4, space-y-6\n```\n\n### Typography\n```\nH1: text-3xl font-bold\nH2: text-2xl font-bold  \nH3: text-base font-semibold\nBody: text-sm font-normal\nSmall: text-xs font-medium\nLabel: text-xs font-semibold uppercase\n```\n\n---\n\n## 🎓 Premium Principles\n\n1. **Less is More** - Espaço em branco é seu amigo\n2. **Subtle Interactions** - Nada exagerado\n3. **Consistent Spacing** - Múltiplos de 4px\n4. **Clear Hierarchy** - Tipo e peso bem definidos\n5. **Thoughtful Colors** - Propósito em cada cor\n6. **Smooth Transitions** - 200ms é o padrão\n7. **Responsive Everything** - Mobile-first sempre\n8. **Accessible Design** - Contraste e keyboard nav\n\n---\n\n**NovaPrata Labs: Built for Premium Experience** ✨\n"
+-\ No newline at end of file
+-diff --git a/package-lock.json b/package-lock.json
+-index 887903a..19ea49f 100644
+---- a/package-lock.json
+-+++ b/package-lock.json
+-@@ -7,6 +7,7 @@
+-     "": {
+-       "name": "novapratalabs",
+-       "version": "0.1.0",
+-+      "hasInstallScript": true,
+-       "dependencies": {
+-         "@prisma/client": "^6.19.3",
+-         "@radix-ui/react-slot": "^1.2.4",
+-diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+-index 38e6b66..c844e09 100644
+---- a/prisma/schema.prisma
+-+++ b/prisma/schema.prisma
+-@@ -20,6 +20,25 @@ enum MaintenanceStatus {
+-   CANCELADO
+- }
+- 
+-+enum TicketStatus {
+-+  ABERTO
+-+  EM_ANDAMENTO
+-+  AGUARDANDO_PECA
+-+  CONCLUIDO
+-+}
+-+
+-+enum TicketPriority {
+-+  BAIXA
+-+  MEDIA
+-+  ALTA
+-+  CRITICA
+-+}
+-+
+-+enum DocumentType {
+-+  CERTIFICADO
+-+  LICENCA
+-+}
+-+
+- model User {
+-   id        String   @id @default(cuid())
+-   name      String
+-@@ -30,6 +49,8 @@ model User {
+-   updatedAt DateTime @updatedAt
+-   assets    Asset[]
+-   vaultAccessLogs VaultAccessLog[]
+-+  documents Document[]
+-+  tickets   Ticket[]
+- 
+-   @@map("users")
+- }
+-@@ -68,6 +89,8 @@ model Asset {
+-   sector       Sector?       @relation(fields: [sectorId], references: [id])
+-   maintenances Maintenance[]
+-   vaultCredentials VaultCredential[]
+-+  documents    Document[]
+-+  tickets      Ticket[]
+- 
+-   @@map("assets")
+- }
+-@@ -128,6 +151,70 @@ model VaultAccessLog {
+-   @@map("vault_access_logs")
+- }
+- 
+-+model Supplier {
+-+  id           String   @id @default(cuid())
+-+  name         String
+-+  serviceType  String
+-+  contactName  String?
+-+  phone        String?
+-+  email        String?
+-+  hasContract  Boolean  @default(false)
+-+  contractEnd  DateTime?
+-+  notes        String?
+-+  createdAt    DateTime @default(now())
+-+  updatedAt    DateTime @updatedAt
+-+
+-+  documents Document[]
+-+
+-+  @@map("suppliers")
+-+}
+-+
+-+model Document {
+-+  id             String       @id @default(cuid())
+-+  type           DocumentType
+-+  title          String
+-+  holder         String
+-+  validUntil     DateTime
+-+  responsibleId  String?
+-+  supplierId     String?
+-+  assetId        String?
+-+  notes          String?
+-+  createdAt      DateTime     @default(now())
+-+  updatedAt      DateTime     @updatedAt
+-+
+-+  responsible User?     @relation(fields: [responsibleId], references: [id])
+-+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+-+  asset       Asset?    @relation(fields: [assetId], references: [id])
+-+
+-+  @@index([validUntil])
+-+  @@map("documents")
+-+}
+-+
+-+model Ticket {
+-+  id             String         @id @default(cuid())
+-+  requesterName  String
+-+  sector         String
+-+  category       String
+-+  description    String
+-+  priority       TicketPriority @default(MEDIA)
+-+  status         TicketStatus   @default(ABERTO)
+-+  responsibleId  String?
+-+  assetId        String?
+-+  solution       String?
+-+  recurring      Boolean        @default(false)
+-+  openedAt       DateTime       @default(now())
+-+  closedAt       DateTime?
+-+  createdAt      DateTime       @default(now())
+-+  updatedAt      DateTime       @updatedAt
+-+
+-+  responsible User?  @relation(fields: [responsibleId], references: [id])
+-+  asset       Asset? @relation(fields: [assetId], references: [id])
+-+
+-+  @@index([status])
+-+  @@index([priority])
+-+  @@map("tickets")
+-+}
+-+
+- model NetworkSegment {
+-   id        String   @id @default(cuid())
+-   name      String
+-diff --git a/public/file.svg b/public/file.svg
+-deleted file mode 100644
+-index 004145c..0000000
+---- a/public/file.svg
+-+++ /dev/null
+-@@ -1 +0,0 @@
+--<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+-\ No newline at end of file
+-diff --git a/public/globe.svg b/public/globe.svg
+-deleted file mode 100644
+-index 567f17b..0000000
+---- a/public/globe.svg
+-+++ /dev/null
+-@@ -1 +0,0 @@
+--<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+-\ No newline at end of file
+-diff --git a/public/next.svg b/public/next.svg
+-deleted file mode 100644
+-index 5174b28..0000000
+---- a/public/next.svg
+-+++ /dev/null
+-@@ -1 +0,0 @@
+--<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+-\ No newline at end of file
+-diff --git a/public/vercel.svg b/public/vercel.svg
+-deleted file mode 100644
+-index 7705396..0000000
+---- a/public/vercel.svg
+-+++ /dev/null
+-@@ -1 +0,0 @@
+--<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+-\ No newline at end of file
+-diff --git a/public/window.svg b/public/window.svg
+-deleted file mode 100644
+-index b2b2a44..0000000
+---- a/public/window.svg
+-+++ /dev/null
+-@@ -1 +0,0 @@
+--<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+-\ No newline at end of file
+-diff --git a/src/app/(dashboard)/assets/[id]/qr-test/page.tsx b/src/app/(dashboard)/assets/[id]/qr-test/page.tsx
+-deleted file mode 100644
+-index dd2423f..0000000
+---- a/src/app/(dashboard)/assets/[id]/qr-test/page.tsx
+-+++ /dev/null
+-@@ -1,232 +0,0 @@
+--"use client"
+--
+--import React from "react"
+--import { useParams } from "next/navigation"
+--import { Copy, Check, Download, Monitor } from "lucide-react"
+--import { Button } from "@/components/ui/button"
+--import { Card } from "@/components/ui/card"
+--
+--export default function QRTestPage() {
+--  const params = useParams()
+--  const assetId = params.id as string
+--  const [copied, setCopied] = React.useState(false)
+--
+--  // URL que o QR Code vai apontar
+--  const qrTargetUrl = `http://192.168.1.101:3000/assets/${assetId}?quick=info`
+--  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrTargetUrl)}`
+--
+--  const handleCopyUrl = () => {
+--    navigator.clipboard.writeText(qrTargetUrl)
+--    setCopied(true)
+--    setTimeout(() => setCopied(false), 2000)
+--  }
+--
+--  const handleDownload = async () => {
+--    try {
+--      const response = await fetch(qrApiUrl)
+--      const blob = await response.blob()
+--      const url = window.URL.createObjectURL(blob)
+--      const a = document.createElement("a")
+--      a.href = url
+--      a.download = `qr-code-test-${assetId}.png`
+--      document.body.appendChild(a)
+--      a.click()
+--      window.URL.revokeObjectURL(url)
+--      document.body.removeChild(a)
+--    } catch (error) {
+--      console.error("Error downloading QR code:", error)
+--    }
+--  }
+--
+--  return (
+--    <div className="max-w-2xl mx-auto p-6 space-y-8">
+--      <div>
+--        <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
+--          Teste de QR Code
+--        </h1>
+--        <p style={{ color: "var(--text-tertiary)" }}>
+--          Escaneie o QR Code abaixo com seu celular na mesma rede WiFi
+--        </p>
+--      </div>
+--
+--      <Card className="p-8">
+--        <div className="flex flex-col items-center gap-6">
+--          {/* QR Code Grande */}
+--          <div className="p-4 rounded-lg bg-white">
+--            <img
+--              src={qrApiUrl}
+--              alt="QR Code"
+--              className="w-80 h-80"
+--              style={{
+--                imageRendering: "crisp-edges",
+--              }}
+--            />
+--          </div>
+--
+--          {/* Instruções */}
+--          <div className="text-center space-y-4 w-full">
+--            <div
+--              className="p-4 rounded-lg"
+--              style={{
+--                background: "var(--bg-muted)",
+--                color: "var(--text-secondary)",
+--              }}
+--            >
+--              <p className="font-semibold mb-2">📱 Instruções:</p>
+--              <ol className="text-sm space-y-2 text-left">
+--                <li>✅ 1. Abra a câmera do seu celular</li>
+--                <li>✅ 2. Aponte para o QR Code acima</li>
+--                <li>✅ 3. Toque no link que aparecer</li>
+--                <li>✅ 4. Você será redirecionado para a página do ativo</li>
+--              </ol>
+--            </div>
+--
+--            {/* URL Info */}
+--            <div
+--              className="p-4 rounded-lg text-center break-all text-xs font-mono"
+--              style={{
+--                background: "var(--bg-secondary)",
+--                color: "var(--text-secondary)",
+--                border: "1px solid var(--border-primary)",
+--              }}
+--            >
+--              <p className="mb-2 font-semibold">URL do QR Code:</p>
+--              <p>{qrTargetUrl}</p>
+--            </div>
+--
+--            {/* Botões */}
+--            <div className="flex flex-col sm:flex-row gap-3 w-full">
+--              <Button onClick={handleCopyUrl} variant="outline" className="flex-1">
+--                {copied ? (
+--                  <>
+--                    <Check className="mr-2 h-4 w-4" />
+--                    Copiado!
+--                  </>
+--                ) : (
+--                  <>
+--                    <Copy className="mr-2 h-4 w-4" />
+--                    Copiar URL
+--                  </>
+--                )}
+--              </Button>
+--
+--              <Button onClick={handleDownload} variant="outline" className="flex-1">
+--                <Download className="mr-2 h-4 w-4" />
+--                Baixar QR Code
+--              </Button>
+--            </div>
+--
+--            {/* Info de Rede */}
+--            <div
+--              className="p-4 rounded-lg text-sm"
+--              style={{
+--                background: "var(--bg-tertiary)",
+--                color: "var(--text-tertiary)",
+--              }}
+--            >
+--              <p className="font-semibold mb-2 flex items-center justify-center gap-2">
+--                <Monitor className="h-4 w-4" />
+--                Sua Rede
+--              </p>
+--              <p>IP: <span className="font-mono font-bold text-blue-500">192.168.1.101:3000</span></p>
+--              <p className="text-xs mt-2">
+--                Certifique-se de que seu celular está na mesma rede WiFi
+--              </p>
+--            </div>
+--          </div>
+--        </div>
+--      </Card>
+--
+--      {/* Teste Direto */}
+--      <Card className="p-6">
+--        <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+--          🧪 Teste Direto (sem escanear)
+--        </h2>
+--        <p className="mb-4" style={{ color: "var(--text-tertiary)" }}>
+--          Clique no link abaixo para testar a navegação:
+--        </p>
+--        <Button asChild className="w-full">
+--          <a href={qrTargetUrl}>
+--            Abrir URL do QR Code
+--          </a>
+--        </Button>
+--      </Card>
+--
+--      {/* Fluxo de Login */}
+--      <Card className="p-6">
+--        <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+--          🔐 Fluxo de Segurança
+--        </h2>
+--        <div className="space-y-3">
+--          <div className="flex items-start gap-3">
+--            <div
+--              className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white"
+--              style={{ background: "var(--status-info)" }}
+--            >
+--              1
+--            </div>
+--            <div>
+--              <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+--                Acesso à URL
+--              </p>
+--              <p style={{ color: "var(--text-tertiary)" }}>
+--                {qrTargetUrl}
+--              </p>
+--            </div>
+--          </div>
+--
+--          <div className="flex items-start gap-3">
+--            <div
+--              className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white"
+--              style={{ background: "var(--status-info)" }}
+--            >
+--              2
+--            </div>
+--            <div>
+--              <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+--                Verificação de Autenticação
+--              </p>
+--              <p style={{ color: "var(--text-tertiary)" }}>
+--                Sistema verifica se você está autenticado
+--              </p>
+--            </div>
+--          </div>
+--
+--          <div className="flex items-start gap-3">
+--            <div
+--              className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white"
+--              style={{ background: "var(--status-info)" }}
+--            >
+--              3
+--            </div>
+--            <div>
+--              <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+--                Se não autenticado
+--              </p>
+--              <p style={{ color: "var(--text-tertiary)" }}>
+--                Redireciona para /login com redirect automático
+--              </p>
+--            </div>
+--          </div>
+--
+--          <div className="flex items-start gap-3">
+--            <div
+--              className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white"
+--              style={{ background: "var(--status-success)" }}
+--            >
+--              4
+--            </div>
+--            <div>
+--              <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+--                Página de Detalhe Carregada
+--              </p>
+--              <p style={{ color: "var(--text-tertiary)" }}>
+--                Mostra informações completas do ativo com QR Code
+--              </p>
+--            </div>
+--          </div>
+--        </div>
+--      </Card>
+--    </div>
+--  )
+--}
+-diff --git a/src/app/(dashboard)/documents/page.tsx b/src/app/(dashboard)/documents/page.tsx
+-new file mode 100644
+-index 0000000..b59aa53
+---- /dev/null
+-+++ b/src/app/(dashboard)/documents/page.tsx
+-@@ -0,0 +1,191 @@
+-+"use client"
+-+
+-+import React from "react"
+-+import { FileText, AlertTriangle, CheckCircle2, Plus, Loader2, Pencil, Trash2, RefreshCw } from "lucide-react"
+-+
+-+import { Button } from "@/components/ui/button"
+-+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+-+import { Badge } from "@/components/ui/badge"
+-+import { Modal } from "@/components/ui/modal"
+-+import { cn } from "@/lib/utils"
+-+import { DocumentForm } from "@/components/features/documents/DocumentForm"
+-+
+-+function daysUntil(date: string) {
+-+  const diff = new Date(date).getTime() - Date.now()
+-+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+-+}
+-+
+-+export default function DocumentsPage() {
+-+  const [documents, setDocuments] = React.useState<any[]>([])
+-+  const [suppliers, setSuppliers] = React.useState<any[]>([])
+-+  const [assets, setAssets] = React.useState<any[]>([])
+-+  const [loading, setLoading] = React.useState(true)
+-+  const [isModalOpen, setIsModalOpen] = React.useState(false)
+-+  const [editingDoc, setEditingDoc] = React.useState<any>(null)
+-+
+-+  const fetchData = React.useCallback(async () => {
+-+    setLoading(true)
+-+    try {
+-+      const [dRes, sRes, aRes] = await Promise.all([
+-+        fetch("/api/documents"),
+-+        fetch("/api/suppliers"),
+-+        fetch("/api/assets"),
+-+      ])
+-+      const dData = await dRes.json()
+-+      const sData = await sRes.json()
+-+      const aData = await aRes.json()
+-+      if (Array.isArray(dData)) setDocuments(dData)
+-+      if (Array.isArray(sData)) setSuppliers(sData)
+-+      if (Array.isArray(aData)) setAssets(aData)
+-+    } catch (error) {
+-+      console.error("Error fetching documents:", error)
+-+    } finally {
+-+      setLoading(false)
+-+    }
+-+  }, [])
+-+
+-+  React.useEffect(() => { fetchData() }, [fetchData])
+-+
+-+  async function handleCreateOrUpdate(data: any) {
+-+    const url = editingDoc ? `/api/documents/${editingDoc.id}` : "/api/documents"
+-+    const method = editingDoc ? "PUT" : "POST"
+-+    try {
+-+      const res = await fetch(url, {
+-+        method,
+-+        body: JSON.stringify(data),
+-+        headers: { "Content-Type": "application/json" },
+-+      })
+-+      if (res.ok) {
+-+        setIsModalOpen(false)
+-+        setEditingDoc(null)
+-+        fetchData()
+-+      }
+-+    } catch (error) {
+-+      console.error("Error saving document:", error)
+-+    }
+-+  }
+-+
+-+  async function handleDelete(id: string) {
+-+    if (!confirm("Deseja realmente excluir este registro?")) return
+-+    try {
+-+      const res = await fetch(`/api/documents/${id}`, { method: "DELETE" })
+-+      if (res.ok) fetchData()
+-+    } catch (error) {
+-+      console.error("Error deleting document:", error)
+-+    }
+-+  }
+-+
+-+  const expiredCount = documents.filter(d => daysUntil(d.validUntil) < 0).length
+-+  const expiringSoonCount = documents.filter(d => { const days = daysUntil(d.validUntil); return days >= 0 && days <= 60 }).length
+-+  const okCount = documents.filter(d => daysUntil(d.validUntil) > 60).length
+-+
+-+  return (
+-+    <div className="space-y-6 animate-in fade-in duration-500">
+-+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+-+        <div>
+-+          <h1 className="text-3xl font-bold tracking-tight">Certificados e Licenças</h1>
+-+          <p className="text-muted-foreground">Controle de vencimento de certificados digitais e licenças de software.</p>
+-+        </div>
+-+        <Button className="bg-primary shadow-lg shadow-primary/20" onClick={() => { setEditingDoc(null); setIsModalOpen(true) }}>
+-+          <Plus className="mr-2 h-4 w-4" />
+-+          Cadastrar
+-+        </Button>
+-+      </div>
+-+
+-+      <div className="grid gap-6 md:grid-cols-3">
+-+        <Card className="bg-red-500/5 border-red-500/20">
+-+          <CardHeader className="pb-2">
+-+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+-+              <AlertTriangle className="h-4 w-4 text-red-500" /> Vencidos
+-+            </CardTitle>
+-+          </CardHeader>
+-+          <CardContent><div className="text-2xl font-bold">{String(expiredCount).padStart(2, '0')}</div></CardContent>
+-+        </Card>
+-+        <Card className="bg-amber-500/5 border-amber-500/20">
+-+          <CardHeader className="pb-2">
+-+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+-+              <AlertTriangle className="h-4 w-4 text-amber-500" /> Vencendo em 60 dias
+-+            </CardTitle>
+-+          </CardHeader>
+-+          <CardContent><div className="text-2xl font-bold">{String(expiringSoonCount).padStart(2, '0')}</div></CardContent>
+-+        </Card>
+-+        <Card className="bg-emerald-500/5 border-emerald-500/20">
+-+          <CardHeader className="pb-2">
+-+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+-+              <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Em dia
+-+            </CardTitle>
+-+          </CardHeader>
+-+          <CardContent><div className="text-2xl font-bold">{String(okCount).padStart(2, '0')}</div></CardContent>
+-+        </Card>
+-+      </div>
+-+
+-+      <Card>
+-+        <CardHeader className="flex flex-row items-center justify-between">
+-+          <div>
+-+            <CardTitle>Lista</CardTitle>
+-+            <CardDescription>Ordenado por data de vencimento mais próxima.</CardDescription>
+-+          </div>
+-+          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
+-+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+-+            Sincronizar
+-+          </Button>
+-+        </CardHeader>
+-+        <CardContent className="p-0">
+-+          <div className="divide-y relative min-h-[300px]">
+-+            {loading ? (
+-+              <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[1px]">
+-+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+-+              </div>
+-+            ) : documents.length === 0 ? (
+-+              <div className="p-12 text-center text-muted-foreground">Nenhum certificado ou licença cadastrado.</div>
+-+            ) : (
+-+              documents.map((d) => {
+-+                const days = daysUntil(d.validUntil)
+-+                const statusColor = days < 0 ? "text-red-500 bg-red-500/10" : days <= 60 ? "text-amber-500 bg-amber-500/10" : "text-emerald-500 bg-emerald-500/10"
+-+                return (
+-+                  <div key={d.id} className="p-4 hover:bg-muted/50 transition-colors flex items-center justify-between group">
+-+                    <div className="flex items-center gap-4">
+-+                      <div className={cn("p-2 rounded-full", statusColor)}>
+-+                        <FileText className="h-5 w-5" />
+-+                      </div>
+-+                      <div>
+-+                        <div className="flex items-center gap-2 flex-wrap">
+-+                          <p className="font-semibold text-sm">{d.title}</p>
+-+                          <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">
+-+                            {d.type === "CERTIFICADO" ? "Certificado" : "Licença"}
+-+                          </Badge>
+-+                        </div>
+-+                        <p className="text-xs text-muted-foreground mt-1">
+-+                          {d.holder} — vence em {new Date(d.validUntil).toLocaleDateString()}
+-+                          {" "}({days < 0 ? `vencido há ${Math.abs(days)} dias` : `${days} dias`})
+-+                        </p>
+-+                      </div>
+-+                    </div>
+-+                    <div className="flex items-center gap-2">
+-+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => { setEditingDoc(d); setIsModalOpen(true) }}>
+-+                        <Pencil className="h-4 w-4" />
+-+                      </Button>
+-+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(d.id)}>
+-+                        <Trash2 className="h-4 w-4" />
+-+                      </Button>
+-+                    </div>
+-+                  </div>
+-+                )
+-+              })
+-+            )}
+-+          </div>
+-+        </CardContent>
+-+      </Card>
+-+
+-+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingDoc ? "Editar Registro" : "Novo Certificado/Licença"}>
+-+        <DocumentForm
+-+          initialData={editingDoc}
+-+          suppliers={suppliers}
+-+          assets={assets}
+-+          onCancel={() => setIsModalOpen(false)}
+-+          onSubmit={handleCreateOrUpdate}
+-+        />
+-+      </Modal>
+-+    </div>
+-+  )
+-+}
+-diff --git a/src/app/(dashboard)/layout-client.tsx b/src/app/(dashboard)/layout-client.tsx
+-index 7d538c1..2c7f79f 100644
+---- a/src/app/(dashboard)/layout-client.tsx
+-+++ b/src/app/(dashboard)/layout-client.tsx
+-@@ -3,7 +3,7 @@
+- import React from "react"
+- import Link from "next/link"
+- import { usePathname, useRouter } from "next/navigation"
+--import { Monitor, LayoutDashboard, Box, Users, Lock, Network, PenTool, BarChart3, Settings, ChevronLeft, Search, Bell, LogOut, User } from "lucide-react"
+-+import { Monitor, LayoutDashboard, Box, Users, Lock, Network, PenTool, BarChart3, Settings, ChevronLeft, Search, Bell, LogOut, User, Ticket, FileText, Building2 } from "lucide-react"
+- import { cn } from "@/lib/utils"
+- import { Button } from "@/components/ui/button"
+- import { ThemeToggle } from "@/components/theme-toggle"
+-@@ -15,6 +15,9 @@ const sidebarItems = [
+-   { icon: Lock, label: "Cofre", href: "/vault" },
+-   { icon: Network, label: "Rede", href: "/network" },
+-   { icon: PenTool, label: "Manutenção", href: "/maintenances" },
+-+  { icon: Ticket, label: "Chamados", href: "/tickets" },
+-+  { icon: FileText, label: "Certificados/Licenças", href: "/documents" },
+-+  { icon: Building2, label: "Fornecedores", href: "/suppliers" },
+-   { icon: BarChart3, label: "Relatórios", href: "/reports" },
+- ]
+- 
+-diff --git a/src/app/(dashboard)/suppliers/page.tsx b/src/app/(dashboard)/suppliers/page.tsx
+-new file mode 100644
+-index 0000000..ac70601
+---- /dev/null
+-+++ b/src/app/(dashboard)/suppliers/page.tsx
+-@@ -0,0 +1,142 @@
+-+"use client"
+-+
+-+import React from "react"
+-+import { Building2, Phone, Mail, Plus, Loader2, Pencil, Trash2, RefreshCw } from "lucide-react"
+-+
+-+import { Button } from "@/components/ui/button"
+-+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+-+import { Badge } from "@/components/ui/badge"
+-+import { Modal } from "@/components/ui/modal"
+-+import { SupplierForm } from "@/components/features/suppliers/SupplierForm"
+-+
+-+export default function SuppliersPage() {
+-+  const [suppliers, setSuppliers] = React.useState<any[]>([])
+-+  const [loading, setLoading] = React.useState(true)
+-+  const [isModalOpen, setIsModalOpen] = React.useState(false)
+-+  const [editingSupplier, setEditingSupplier] = React.useState<any>(null)
+-+
+-+  const fetchData = React.useCallback(async () => {
+-+    setLoading(true)
+-+    try {
+-+      const res = await fetch("/api/suppliers")
+-+      const data = await res.json()
+-+      if (Array.isArray(data)) setSuppliers(data)
+-+    } catch (error) {
+-+      console.error("Error fetching suppliers:", error)
+-+    } finally {
+-+      setLoading(false)
+-+    }
+-+  }, [])
+-+
+-+  React.useEffect(() => { fetchData() }, [fetchData])
+-+
+-+  async function handleCreateOrUpdate(data: any) {
+-+    const url = editingSupplier ? `/api/suppliers/${editingSupplier.id}` : "/api/suppliers"
+-+    const method = editingSupplier ? "PUT" : "POST"
+-+    try {
+-+      const res = await fetch(url, {
+-+        method,
+-+        body: JSON.stringify(data),
+-+        headers: { "Content-Type": "application/json" },
+-+      })
+-+      if (res.ok) {
+-+        setIsModalOpen(false)
+-+        setEditingSupplier(null)
+-+        fetchData()
+-+      }
+-+    } catch (error) {
+-+      console.error("Error saving supplier:", error)
+-+    }
+-+  }
+-+
+-+  async function handleDelete(id: string) {
+-+    if (!confirm("Deseja realmente excluir este fornecedor?")) return
+-+    try {
+-+      const res = await fetch(`/api/suppliers/${id}`, { method: "DELETE" })
+-+      if (res.ok) fetchData()
+-+    } catch (error) {
+-+      console.error("Error deleting supplier:", error)
+-+    }
+-+  }
+-+
+-+  return (
+-+    <div className="space-y-6 animate-in fade-in duration-500">
+-+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+-+        <div>
+-+          <h1 className="text-3xl font-bold tracking-tight">Fornecedores</h1>
+-+          <p className="text-muted-foreground">Contatos de suporte e contratos por tipo de serviço.</p>
+-+        </div>
+-+        <Button className="bg-primary shadow-lg shadow-primary/20" onClick={() => { setEditingSupplier(null); setIsModalOpen(true) }}>
+-+          <Plus className="mr-2 h-4 w-4" />
+-+          Novo Fornecedor
+-+        </Button>
+-+      </div>
+-+
+-+      <Card>
+-+        <CardHeader className="flex flex-row items-center justify-between">
+-+          <div>
+-+            <CardTitle>Lista de Fornecedores</CardTitle>
+-+            <CardDescription>Quem resolve cada tipo de problema.</CardDescription>
+-+          </div>
+-+          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
+-+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+-+            Sincronizar
+-+          </Button>
+-+        </CardHeader>
+-+        <CardContent className="p-0">
+-+          <div className="divide-y relative min-h-[300px]">
+-+            {loading ? (
+-+              <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[1px]">
+-+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+-+              </div>
+-+            ) : suppliers.length === 0 ? (
+-+              <div className="p-12 text-center text-muted-foreground">Nenhum fornecedor cadastrado.</div>
+-+            ) : (
+-+              suppliers.map((s) => (
+-+                <div key={s.id} className="p-4 hover:bg-muted/50 transition-colors flex items-center justify-between group">
+-+                  <div className="flex items-center gap-4">
+-+                    <div className="p-2 rounded-full bg-primary/10 text-primary">
+-+                      <Building2 className="h-5 w-5" />
+-+                    </div>
+-+                    <div>
+-+                      <div className="flex items-center gap-2 flex-wrap">
+-+                        <p className="font-semibold text-sm">{s.name}</p>
+-+                        <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">{s.serviceType}</Badge>
+-+                        {s.hasContract && (
+-+                          <Badge className="text-[10px] font-normal py-0 h-4 bg-emerald-500/10 text-emerald-500 border-emerald-500/20 border">
+-+                            Com contrato
+-+                          </Badge>
+-+                        )}
+-+                      </div>
+-+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-3">
+-+                        {s.contactName && <span>{s.contactName}</span>}
+-+                        {s.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{s.phone}</span>}
+-+                        {s.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{s.email}</span>}
+-+                      </p>
+-+                    </div>
+-+                  </div>
+-+                  <div className="flex items-center gap-2">
+-+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => { setEditingSupplier(s); setIsModalOpen(true) }}>
+-+                      <Pencil className="h-4 w-4" />
+-+                    </Button>
+-+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(s.id)}>
+-+                      <Trash2 className="h-4 w-4" />
+-+                    </Button>
+-+                  </div>
+-+                </div>
+-+              ))
+-+            )}
+-+          </div>
+-+        </CardContent>
+-+      </Card>
+-+
+-+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingSupplier ? "Editar Fornecedor" : "Novo Fornecedor"}>
+-+        <SupplierForm
+-+          initialData={editingSupplier}
+-+          onCancel={() => setIsModalOpen(false)}
+-+          onSubmit={handleCreateOrUpdate}
+-+        />
+-+      </Modal>
+-+    </div>
+-+  )
+-+}
+-diff --git a/src/app/(dashboard)/tickets/page.tsx b/src/app/(dashboard)/tickets/page.tsx
+-new file mode 100644
+-index 0000000..444a029
+---- /dev/null
+-+++ b/src/app/(dashboard)/tickets/page.tsx
+-@@ -0,0 +1,226 @@
+-+"use client"
+-+
+-+import React from "react"
+-+import {
+-+  Ticket as TicketIcon,
+-+  Clock,
+-+  CheckCircle2,
+-+  AlertTriangle,
+-+  Plus,
+-+  Loader2,
+-+  Pencil,
+-+  Trash2,
+-+  RefreshCw,
+-+} from "lucide-react"
+-+
+-+import { Button } from "@/components/ui/button"
+-+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+-+import { Badge } from "@/components/ui/badge"
+-+import { Modal } from "@/components/ui/modal"
+-+import { cn } from "@/lib/utils"
+-+import { TicketForm } from "@/components/features/tickets/TicketForm"
+-+
+-+const PRIORITY_STYLE: Record<string, string> = {
+-+  BAIXA: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+-+  MEDIA: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+-+  ALTA: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+-+  CRITICA: "bg-red-500/10 text-red-500 border-red-500/20",
+-+}
+-+
+-+export default function TicketsPage() {
+-+  const [tickets, setTickets] = React.useState<any[]>([])
+-+  const [assets, setAssets] = React.useState<any[]>([])
+-+  const [loading, setLoading] = React.useState(true)
+-+  const [isModalOpen, setIsModalOpen] = React.useState(false)
+-+  const [editingTicket, setEditingTicket] = React.useState<any>(null)
+-+
+-+  const fetchData = React.useCallback(async () => {
+-+    setLoading(true)
+-+    try {
+-+      const [tRes, aRes] = await Promise.all([
+-+        fetch("/api/tickets"),
+-+        fetch("/api/assets"),
+-+      ])
+-+      const tData = await tRes.json()
+-+      const aData = await aRes.json()
+-+      if (Array.isArray(tData)) setTickets(tData)
+-+      if (Array.isArray(aData)) setAssets(aData)
+-+    } catch (error) {
+-+      console.error("Error fetching tickets:", error)
+-+    } finally {
+-+      setLoading(false)
+-+    }
+-+  }, [])
+-+
+-+  React.useEffect(() => { fetchData() }, [fetchData])
+-+
+-+  async function handleCreateOrUpdate(data: any) {
+-+    const url = editingTicket ? `/api/tickets/${editingTicket.id}` : "/api/tickets"
+-+    const method = editingTicket ? "PUT" : "POST"
+-+    try {
+-+      const res = await fetch(url, {
+-+        method,
+-+        body: JSON.stringify(data),
+-+        headers: { "Content-Type": "application/json" },
+-+      })
+-+      if (res.ok) {
+-+        setIsModalOpen(false)
+-+        setEditingTicket(null)
+-+        fetchData()
+-+      }
+-+    } catch (error) {
+-+      console.error("Error saving ticket:", error)
+-+    }
+-+  }
+-+
+-+  async function handleDelete(id: string) {
+-+    if (!confirm("Deseja realmente excluir este chamado?")) return
+-+    try {
+-+      const res = await fetch(`/api/tickets/${id}`, { method: "DELETE" })
+-+      if (res.ok) fetchData()
+-+    } catch (error) {
+-+      console.error("Error deleting ticket:", error)
+-+    }
+-+  }
+-+
+-+  const openCount = tickets.filter(t => t.status !== "CONCLUIDO").length
+-+  const criticalOpenCount = tickets.filter(t => t.status !== "CONCLUIDO" && t.priority === "CRITICA").length
+-+  const closedCount = tickets.filter(t => t.status === "CONCLUIDO").length
+-+
+-+  return (
+-+    <div className="space-y-6 animate-in fade-in duration-500">
+-+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+-+        <div>
+-+          <h1 className="text-3xl font-bold tracking-tight">Chamados</h1>
+-+          <p className="text-muted-foreground">Suporte interno: internet, sistema, balança, impressora, acesso e mais.</p>
+-+        </div>
+-+        <Button className="bg-primary shadow-lg shadow-primary/20" onClick={() => { setEditingTicket(null); setIsModalOpen(true) }}>
+-+          <Plus className="mr-2 h-4 w-4" />
+-+          Abrir Chamado
+-+        </Button>
+-+      </div>
+-+
+-+      <div className="grid gap-6 md:grid-cols-3">
+-+        <Card className="bg-amber-500/5 border-amber-500/20">
+-+          <CardHeader className="pb-2">
+-+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+-+              <Clock className="h-4 w-4 text-amber-500" /> Chamados em Aberto
+-+            </CardTitle>
+-+          </CardHeader>
+-+          <CardContent>
+-+            <div className="text-2xl font-bold">{String(openCount).padStart(2, '0')}</div>
+-+          </CardContent>
+-+        </Card>
+-+        <Card className="bg-red-500/5 border-red-500/20">
+-+          <CardHeader className="pb-2">
+-+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+-+              <AlertTriangle className="h-4 w-4 text-red-500" /> Críticos em Aberto
+-+            </CardTitle>
+-+          </CardHeader>
+-+          <CardContent>
+-+            <div className="text-2xl font-bold">{String(criticalOpenCount).padStart(2, '0')}</div>
+-+          </CardContent>
+-+        </Card>
+-+        <Card className="bg-emerald-500/5 border-emerald-500/20">
+-+          <CardHeader className="pb-2">
+-+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+-+              <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Resolvidos
+-+            </CardTitle>
+-+          </CardHeader>
+-+          <CardContent>
+-+            <div className="text-2xl font-bold">{String(closedCount).padStart(2, '0')}</div>
+-+          </CardContent>
+-+        </Card>
+-+      </div>
+-+
+-+      <Card>
+-+        <CardHeader className="flex flex-row items-center justify-between">
+-+          <div>
+-+            <CardTitle>Lista de Chamados</CardTitle>
+-+            <CardDescription>Todos os chamados registrados no sistema.</CardDescription>
+-+          </div>
+-+          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
+-+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+-+            Sincronizar
+-+          </Button>
+-+        </CardHeader>
+-+        <CardContent className="p-0">
+-+          <div className="divide-y relative min-h-[300px]">
+-+            {loading ? (
+-+              <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[1px]">
+-+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+-+              </div>
+-+            ) : tickets.length === 0 ? (
+-+              <div className="p-12 text-center text-muted-foreground">
+-+                Nenhum chamado registrado ainda.
+-+              </div>
+-+            ) : (
+-+              tickets.map((t) => (
+-+                <div key={t.id} className="p-4 hover:bg-muted/50 transition-colors flex items-center justify-between group">
+-+                  <div className="flex items-center gap-4">
+-+                    <div className={cn(
+-+                      "p-2 rounded-full",
+-+                      t.status === "CONCLUIDO" ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"
+-+                    )}>
+-+                      {t.status === "CONCLUIDO" ? <CheckCircle2 className="h-5 w-5" /> : <TicketIcon className="h-5 w-5" />}
+-+                    </div>
+-+                    <div>
+-+                      <div className="flex items-center gap-2 flex-wrap">
+-+                        <p className="font-semibold text-sm">{t.category}</p>
+-+                        <span className="text-muted-foreground opacity-30">•</span>
+-+                        <p className="text-sm text-muted-foreground">{t.sector}</p>
+-+                        <Badge className={cn("text-[10px] font-normal py-0 h-4 border", PRIORITY_STYLE[t.priority])}>
+-+                          {t.priority}
+-+                        </Badge>
+-+                        <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">{t.status}</Badge>
+-+                        {t.recurring && (
+-+                          <Badge variant="outline" className="text-[10px] font-normal py-0 h-4 text-red-400 border-red-500/30">
+-+                            Recorrente
+-+                          </Badge>
+-+                        )}
+-+                      </div>
+-+                      <p className="text-xs text-muted-foreground mt-1 max-w-xl truncate">
+-+                        {t.description} — aberto por {t.requesterName} em {new Date(t.openedAt).toLocaleDateString()}
+-+                      </p>
+-+                    </div>
+-+                  </div>
+-+                  <div className="flex items-center gap-2">
+-+                    <Button
+-+                      variant="ghost"
+-+                      size="icon"
+-+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+-+                      onClick={() => { setEditingTicket(t); setIsModalOpen(true) }}
+-+                    >
+-+                      <Pencil className="h-4 w-4" />
+-+                    </Button>
+-+                    <Button
+-+                      variant="ghost"
+-+                      size="icon"
+-+                      className="h-8 w-8 text-destructive hover:text-destructive"
+-+                      onClick={() => handleDelete(t.id)}
+-+                    >
+-+                      <Trash2 className="h-4 w-4" />
+-+                    </Button>
+-+                  </div>
+-+                </div>
+-+              ))
+-+            )}
+-+          </div>
+-+        </CardContent>
+-+      </Card>
+-+
+-+      <Modal
+-+        isOpen={isModalOpen}
+-+        onClose={() => setIsModalOpen(false)}
+-+        title={editingTicket ? "Editar Chamado" : "Novo Chamado"}
+-+      >
+-+        <TicketForm
+-+          initialData={editingTicket}
+-+          assets={assets}
+-+          onCancel={() => setIsModalOpen(false)}
+-+          onSubmit={handleCreateOrUpdate}
+-+        />
+-+      </Modal>
+-+    </div>
+-+  )
+-+}
+-diff --git a/src/app/api/documents/[id]/route.ts b/src/app/api/documents/[id]/route.ts
+-new file mode 100644
+-index 0000000..7cb3ee7
+---- /dev/null
+-+++ b/src/app/api/documents/[id]/route.ts
+-@@ -0,0 +1,57 @@
+-+import { NextResponse } from "next/server"
+-+import prisma from "@/lib/prisma"
+-+import { getSession } from "@/lib/auth"
+-+
+-+export async function PUT(
+-+  request: Request,
+-+  { params }: { params: Promise<{ id: string }> }
+-+) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const { id } = await params
+-+    const body = await request.json()
+-+    const { type, title, holder, validUntil, responsibleId, supplierId, assetId, notes } = body
+-+
+-+    const document = await prisma.document.update({
+-+      where: { id },
+-+      data: {
+-+        type,
+-+        title,
+-+        holder,
+-+        validUntil: new Date(validUntil),
+-+        responsibleId: responsibleId || null,
+-+        supplierId: supplierId || null,
+-+        assetId: assetId || null,
+-+        notes: notes || null,
+-+      },
+-+    })
+-+
+-+    return NextResponse.json(document)
+-+  } catch (error) {
+-+    console.error("Error updating document:", error)
+-+    return NextResponse.json({ error: "Failed to update document" }, { status: 500 })
+-+  }
+-+}
+-+
+-+export async function DELETE(
+-+  _request: Request,
+-+  { params }: { params: Promise<{ id: string }> }
+-+) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const { id } = await params
+-+    await prisma.document.delete({ where: { id } })
+-+    return NextResponse.json({ message: "Document deleted successfully" })
+-+  } catch (error) {
+-+    console.error("Error deleting document:", error)
+-+    return NextResponse.json({ error: "Failed to delete document" }, { status: 500 })
+-+  }
+-+}
+-diff --git a/src/app/api/documents/route.ts b/src/app/api/documents/route.ts
+-new file mode 100644
+-index 0000000..cc0c41b
+---- /dev/null
+-+++ b/src/app/api/documents/route.ts
+-@@ -0,0 +1,55 @@
+-+import { NextResponse } from "next/server"
+-+import prisma from "@/lib/prisma"
+-+import { getSession } from "@/lib/auth"
+-+
+-+export async function GET() {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const documents = await prisma.document.findMany({
+-+      include: {
+-+        responsible: { select: { name: true } },
+-+        supplier: { select: { name: true } },
+-+        asset: { select: { name: true, tag: true } },
+-+      },
+-+      orderBy: { validUntil: "asc" },
+-+    })
+-+    return NextResponse.json(documents)
+-+  } catch (error) {
+-+    console.error("Error fetching documents:", error)
+-+    return NextResponse.json({ error: "Failed to fetch documents" }, { status: 500 })
+-+  }
+-+}
+-+
+-+export async function POST(request: Request) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const body = await request.json()
+-+    const { type, title, holder, validUntil, responsibleId, supplierId, assetId, notes } = body
+-+
+-+    const document = await prisma.document.create({
+-+      data: {
+-+        type,
+-+        title,
+-+        holder,
+-+        validUntil: new Date(validUntil),
+-+        responsibleId: responsibleId || null,
+-+        supplierId: supplierId || null,
+-+        assetId: assetId || null,
+-+        notes: notes || null,
+-+      },
+-+    })
+-+
+-+    return NextResponse.json(document)
+-+  } catch (error) {
+-+    console.error("Error creating document:", error)
+-+    return NextResponse.json({ error: "Failed to create document" }, { status: 500 })
+-+  }
+-+}
+-diff --git a/src/app/api/suppliers/[id]/route.ts b/src/app/api/suppliers/[id]/route.ts
+-new file mode 100644
+-index 0000000..180131a
+---- /dev/null
+-+++ b/src/app/api/suppliers/[id]/route.ts
+-@@ -0,0 +1,57 @@
+-+import { NextResponse } from "next/server"
+-+import prisma from "@/lib/prisma"
+-+import { getSession } from "@/lib/auth"
+-+
+-+export async function PUT(
+-+  request: Request,
+-+  { params }: { params: Promise<{ id: string }> }
+-+) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const { id } = await params
+-+    const body = await request.json()
+-+    const { name, serviceType, contactName, phone, email, hasContract, contractEnd, notes } = body
+-+
+-+    const supplier = await prisma.supplier.update({
+-+      where: { id },
+-+      data: {
+-+        name,
+-+        serviceType,
+-+        contactName: contactName || null,
+-+        phone: phone || null,
+-+        email: email || null,
+-+        hasContract: !!hasContract,
+-+        contractEnd: contractEnd ? new Date(contractEnd) : null,
+-+        notes: notes || null,
+-+      },
+-+    })
+-+
+-+    return NextResponse.json(supplier)
+-+  } catch (error) {
+-+    console.error("Error updating supplier:", error)
+-+    return NextResponse.json({ error: "Failed to update supplier" }, { status: 500 })
+-+  }
+-+}
+-+
+-+export async function DELETE(
+-+  _request: Request,
+-+  { params }: { params: Promise<{ id: string }> }
+-+) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const { id } = await params
+-+    await prisma.supplier.delete({ where: { id } })
+-+    return NextResponse.json({ message: "Supplier deleted successfully" })
+-+  } catch (error) {
+-+    console.error("Error deleting supplier:", error)
+-+    return NextResponse.json({ error: "Failed to delete supplier" }, { status: 500 })
+-+  }
+-+}
+-diff --git a/src/app/api/suppliers/route.ts b/src/app/api/suppliers/route.ts
+-new file mode 100644
+-index 0000000..556be26
+---- /dev/null
+-+++ b/src/app/api/suppliers/route.ts
+-@@ -0,0 +1,50 @@
+-+import { NextResponse } from "next/server"
+-+import prisma from "@/lib/prisma"
+-+import { getSession } from "@/lib/auth"
+-+
+-+export async function GET() {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const suppliers = await prisma.supplier.findMany({
+-+      orderBy: { name: "asc" },
+-+    })
+-+    return NextResponse.json(suppliers)
+-+  } catch (error) {
+-+    console.error("Error fetching suppliers:", error)
+-+    return NextResponse.json({ error: "Failed to fetch suppliers" }, { status: 500 })
+-+  }
+-+}
+-+
+-+export async function POST(request: Request) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const body = await request.json()
+-+    const { name, serviceType, contactName, phone, email, hasContract, contractEnd, notes } = body
+-+
+-+    const supplier = await prisma.supplier.create({
+-+      data: {
+-+        name,
+-+        serviceType,
+-+        contactName: contactName || null,
+-+        phone: phone || null,
+-+        email: email || null,
+-+        hasContract: !!hasContract,
+-+        contractEnd: contractEnd ? new Date(contractEnd) : null,
+-+        notes: notes || null,
+-+      },
+-+    })
+-+
+-+    return NextResponse.json(supplier)
+-+  } catch (error) {
+-+    console.error("Error creating supplier:", error)
+-+    return NextResponse.json({ error: "Failed to create supplier" }, { status: 500 })
+-+  }
+-+}
+-diff --git a/src/app/api/tickets/[id]/route.ts b/src/app/api/tickets/[id]/route.ts
+-new file mode 100644
+-index 0000000..d740d1f
+---- /dev/null
+-+++ b/src/app/api/tickets/[id]/route.ts
+-@@ -0,0 +1,71 @@
+-+import { NextResponse } from "next/server"
+-+import prisma from "@/lib/prisma"
+-+import { getSession } from "@/lib/auth"
+-+
+-+export async function PUT(
+-+  request: Request,
+-+  { params }: { params: Promise<{ id: string }> }
+-+) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const { id } = await params
+-+    const body = await request.json()
+-+    const {
+-+      requesterName,
+-+      sector,
+-+      category,
+-+      description,
+-+      priority,
+-+      status,
+-+      responsibleId,
+-+      assetId,
+-+      solution,
+-+      recurring,
+-+    } = body
+-+
+-+    const ticket = await prisma.ticket.update({
+-+      where: { id },
+-+      data: {
+-+        requesterName,
+-+        sector,
+-+        category,
+-+        description,
+-+        priority,
+-+        status,
+-+        responsibleId: responsibleId || null,
+-+        assetId: assetId || null,
+-+        solution: solution || null,
+-+        recurring: !!recurring,
+-+        closedAt: status === "CONCLUIDO" ? new Date() : null,
+-+      },
+-+    })
+-+
+-+    return NextResponse.json(ticket)
+-+  } catch (error) {
+-+    console.error("Error updating ticket:", error)
+-+    return NextResponse.json({ error: "Failed to update ticket" }, { status: 500 })
+-+  }
+-+}
+-+
+-+export async function DELETE(
+-+  _request: Request,
+-+  { params }: { params: Promise<{ id: string }> }
+-+) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const { id } = await params
+-+    await prisma.ticket.delete({ where: { id } })
+-+    return NextResponse.json({ message: "Ticket deleted successfully" })
+-+  } catch (error) {
+-+    console.error("Error deleting ticket:", error)
+-+    return NextResponse.json({ error: "Failed to delete ticket" }, { status: 500 })
+-+  }
+-+}
+-diff --git a/src/app/api/tickets/route.ts b/src/app/api/tickets/route.ts
+-new file mode 100644
+-index 0000000..bd9c5e0
+---- /dev/null
+-+++ b/src/app/api/tickets/route.ts
+-@@ -0,0 +1,71 @@
+-+import { NextResponse } from "next/server"
+-+import prisma from "@/lib/prisma"
+-+import { getSession } from "@/lib/auth"
+-+
+-+export async function GET(request: Request) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  const { searchParams } = new URL(request.url)
+-+  const status = searchParams.get("status")
+-+
+-+  try {
+-+    const tickets = await prisma.ticket.findMany({
+-+      where: status ? { status: status as any } : {},
+-+      include: {
+-+        asset: { select: { name: true, tag: true } },
+-+        responsible: { select: { name: true } },
+-+      },
+-+      orderBy: { openedAt: "desc" },
+-+    })
+-+    return NextResponse.json(tickets)
+-+  } catch (error) {
+-+    console.error("Error fetching tickets:", error)
+-+    return NextResponse.json({ error: "Failed to fetch tickets" }, { status: 500 })
+-+  }
+-+}
+-+
+-+export async function POST(request: Request) {
+-+  const session = await getSession()
+-+  if (!session) {
+-+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+-+  }
+-+
+-+  try {
+-+    const body = await request.json()
+-+    const {
+-+      requesterName,
+-+      sector,
+-+      category,
+-+      description,
+-+      priority,
+-+      status,
+-+      responsibleId,
+-+      assetId,
+-+      solution,
+-+      recurring,
+-+    } = body
+-+
+-+    const ticket = await prisma.ticket.create({
+-+      data: {
+-+        requesterName,
+-+        sector,
+-+        category,
+-+        description,
+-+        priority: priority || "MEDIA",
+-+        status: status || "ABERTO",
+-+        responsibleId: responsibleId || null,
+-+        assetId: assetId || null,
+-+        solution: solution || null,
+-+        recurring: !!recurring,
+-+      },
+-+    })
+-+
+-+    return NextResponse.json(ticket)
+-+  } catch (error) {
+-+    console.error("Error creating ticket:", error)
+-+    return NextResponse.json({ error: "Failed to create ticket" }, { status: 500 })
+-+  }
+-+}
+-diff --git a/src/components/features/documents/DocumentForm.tsx b/src/components/features/documents/DocumentForm.tsx
+-new file mode 100644
+-index 0000000..c05aa61
+---- /dev/null
+-+++ b/src/components/features/documents/DocumentForm.tsx
+-@@ -0,0 +1,125 @@
+-+"use client"
+-+
+-+import * as React from "react"
+-+import { Button } from "@/components/ui/button"
+-+import { Input } from "@/components/ui/input"
+-+import { Loader2 } from "lucide-react"
+-+
+-+interface DocumentFormProps {
+-+  initialData?: any
+-+  suppliers: any[]
+-+  assets: any[]
+-+  onSubmit: (data: any) => Promise<void>
+-+  onCancel: () => void
+-+}
+-+
+-+export function DocumentForm({ initialData, suppliers, assets, onSubmit, onCancel }: DocumentFormProps) {
+-+  const [loading, setLoading] = React.useState(false)
+-+  const [formData, setFormData] = React.useState({
+-+    type: initialData?.type || "CERTIFICADO",
+-+    title: initialData?.title || "",
+-+    holder: initialData?.holder || "",
+-+    validUntil: initialData?.validUntil ? new Date(initialData.validUntil).toISOString().split('T')[0] : "",
+-+    supplierId: initialData?.supplierId || "",
+-+    assetId: initialData?.assetId || "",
+-+    notes: initialData?.notes || "",
+-+  })
+-+
+-+  async function handleSubmit(e: React.FormEvent) {
+-+    e.preventDefault()
+-+    setLoading(true)
+-+    try {
+-+      await onSubmit(formData)
+-+    } finally {
+-+      setLoading(false)
+-+    }
+-+  }
+-+
+-+  return (
+-+    <form onSubmit={handleSubmit} className="space-y-4">
+-+      <div className="grid grid-cols-2 gap-4">
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Tipo</label>
+-+          <select
+-+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+            value={formData.type}
+-+            onChange={e => setFormData({ ...formData, type: e.target.value })}
+-+          >
+-+            <option value="CERTIFICADO">Certificado Digital</option>
+-+            <option value="LICENCA">Licença de Software</option>
+-+          </select>
+-+        </div>
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Validade</label>
+-+          <Input
+-+            type="date"
+-+            required
+-+            value={formData.validUntil}
+-+            onChange={e => setFormData({ ...formData, validUntil: e.target.value })}
+-+          />
+-+        </div>
+-+      </div>
+-+
+-+      <div className="space-y-2">
+-+        <label className="text-sm font-medium">Nome / Descrição</label>
+-+        <Input
+-+          required
+-+          placeholder="Ex: Certificado A1 Cotton Nova Prata, Licença Windows Server..."
+-+          value={formData.title}
+-+          onChange={e => setFormData({ ...formData, title: e.target.value })}
+-+        />
+-+      </div>
+-+
+-+      <div className="space-y-2">
+-+        <label className="text-sm font-medium">Titular (CNPJ/CPF ou empresa)</label>
+-+        <Input
+-+          required
+-+          placeholder="Ex: Cotton Nova Prata LTDA"
+-+          value={formData.holder}
+-+          onChange={e => setFormData({ ...formData, holder: e.target.value })}
+-+        />
+-+      </div>
+-+
+-+      <div className="grid grid-cols-2 gap-4">
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Fornecedor</label>
+-+          <select
+-+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+            value={formData.supplierId}
+-+            onChange={e => setFormData({ ...formData, supplierId: e.target.value })}
+-+          >
+-+            <option value="">Nenhum</option>
+-+            {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+-+          </select>
+-+        </div>
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Instalado em (ativo)</label>
+-+          <select
+-+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+            value={formData.assetId}
+-+            onChange={e => setFormData({ ...formData, assetId: e.target.value })}
+-+          >
+-+            <option value="">Nenhum</option>
+-+            {assets.map(a => <option key={a.id} value={a.id}>{a.tag} - {a.name}</option>)}
+-+          </select>
+-+        </div>
+-+      </div>
+-+
+-+      <div className="space-y-2">
+-+        <label className="text-sm font-medium">Observação</label>
+-+        <textarea
+-+          className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+          value={formData.notes}
+-+          onChange={e => setFormData({ ...formData, notes: e.target.value })}
+-+        />
+-+      </div>
+-+
+-+      <div className="flex justify-end gap-3 pt-4 border-t">
+-+        <Button variant="outline" type="button" onClick={onCancel}>Cancelar</Button>
+-+        <Button type="submit" disabled={loading}>
+-+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : initialData ? "Atualizar" : "Cadastrar"}
+-+        </Button>
+-+      </div>
+-+    </form>
+-+  )
+-+}
+-diff --git a/src/components/features/suppliers/SupplierForm.tsx b/src/components/features/suppliers/SupplierForm.tsx
+-new file mode 100644
+-index 0000000..b8a65ef
+---- /dev/null
+-+++ b/src/components/features/suppliers/SupplierForm.tsx
+-@@ -0,0 +1,108 @@
+-+"use client"
+-+
+-+import * as React from "react"
+-+import { Button } from "@/components/ui/button"
+-+import { Input } from "@/components/ui/input"
+-+import { Loader2 } from "lucide-react"
+-+
+-+interface SupplierFormProps {
+-+  initialData?: any
+-+  onSubmit: (data: any) => Promise<void>
+-+  onCancel: () => void
+-+}
+-+
+-+export function SupplierForm({ initialData, onSubmit, onCancel }: SupplierFormProps) {
+-+  const [loading, setLoading] = React.useState(false)
+-+  const [formData, setFormData] = React.useState({
+-+    name: initialData?.name || "",
+-+    serviceType: initialData?.serviceType || "",
+-+    contactName: initialData?.contactName || "",
+-+    phone: initialData?.phone || "",
+-+    email: initialData?.email || "",
+-+    hasContract: initialData?.hasContract || false,
+-+    contractEnd: initialData?.contractEnd ? new Date(initialData.contractEnd).toISOString().split('T')[0] : "",
+-+    notes: initialData?.notes || "",
+-+  })
+-+
+-+  async function handleSubmit(e: React.FormEvent) {
+-+    e.preventDefault()
+-+    setLoading(true)
+-+    try {
+-+      await onSubmit(formData)
+-+    } finally {
+-+      setLoading(false)
+-+    }
+-+  }
+-+
+-+  return (
+-+    <form onSubmit={handleSubmit} className="space-y-4">
+-+      <div className="grid grid-cols-2 gap-4">
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Nome</label>
+-+          <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+-+        </div>
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Tipo de Serviço</label>
+-+          <Input
+-+            required
+-+            placeholder="Ex: Internet, Impressora, Balança, Certificado..."
+-+            value={formData.serviceType}
+-+            onChange={e => setFormData({ ...formData, serviceType: e.target.value })}
+-+          />
+-+        </div>
+-+      </div>
+-+
+-+      <div className="grid grid-cols-2 gap-4">
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Contato</label>
+-+          <Input value={formData.contactName} onChange={e => setFormData({ ...formData, contactName: e.target.value })} />
+-+        </div>
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Telefone</label>
+-+          <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+-+        </div>
+-+      </div>
+-+
+-+      <div className="space-y-2">
+-+        <label className="text-sm font-medium">E-mail</label>
+-+        <Input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+-+      </div>
+-+
+-+      <div className="grid grid-cols-2 gap-4 items-end">
+-+        <label className="flex items-center gap-2 text-sm font-medium pb-2">
+-+          <input
+-+            type="checkbox"
+-+            checked={formData.hasContract}
+-+            onChange={e => setFormData({ ...formData, hasContract: e.target.checked })}
+-+          />
+-+          Tem contrato ativo
+-+        </label>
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Vencimento do Contrato</label>
+-+          <Input
+-+            type="date"
+-+            disabled={!formData.hasContract}
+-+            value={formData.contractEnd}
+-+            onChange={e => setFormData({ ...formData, contractEnd: e.target.value })}
+-+          />
+-+        </div>
+-+      </div>
+-+
+-+      <div className="space-y-2">
+-+        <label className="text-sm font-medium">Observação</label>
+-+        <textarea
+-+          className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+          value={formData.notes}
+-+          onChange={e => setFormData({ ...formData, notes: e.target.value })}
+-+        />
+-+      </div>
+-+
+-+      <div className="flex justify-end gap-3 pt-4 border-t">
+-+        <Button variant="outline" type="button" onClick={onCancel}>Cancelar</Button>
+-+        <Button type="submit" disabled={loading}>
+-+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : initialData ? "Atualizar" : "Cadastrar"}
+-+        </Button>
+-+      </div>
+-+    </form>
+-+  )
+-+}
+-diff --git a/src/components/features/tickets/TicketForm.tsx b/src/components/features/tickets/TicketForm.tsx
+-new file mode 100644
+-index 0000000..bcbfa12
+---- /dev/null
+-+++ b/src/components/features/tickets/TicketForm.tsx
+-@@ -0,0 +1,161 @@
+-+"use client"
+-+
+-+import * as React from "react"
+-+import { Button } from "@/components/ui/button"
+-+import { Input } from "@/components/ui/input"
+-+import { Loader2 } from "lucide-react"
+-+
+-+const CATEGORIES = [
+-+  "Internet", "Impressora", "Sistema", "Nota Fiscal", "Certificado",
+-+  "Computador Lento", "Balança", "Câmera", "E-mail", "Acesso",
+-+  "Servidor", "Rede", "Backup", "Segurança", "Outro",
+-+]
+-+
+-+interface TicketFormProps {
+-+  initialData?: any
+-+  assets: any[]
+-+  onSubmit: (data: any) => Promise<void>
+-+  onCancel: () => void
+-+}
+-+
+-+export function TicketForm({ initialData, assets, onSubmit, onCancel }: TicketFormProps) {
+-+  const [loading, setLoading] = React.useState(false)
+-+  const [formData, setFormData] = React.useState({
+-+    requesterName: initialData?.requesterName || "",
+-+    sector: initialData?.sector || "",
+-+    category: initialData?.category || CATEGORIES[0],
+-+    description: initialData?.description || "",
+-+    priority: initialData?.priority || "MEDIA",
+-+    status: initialData?.status || "ABERTO",
+-+    assetId: initialData?.assetId || "",
+-+    solution: initialData?.solution || "",
+-+    recurring: initialData?.recurring || false,
+-+  })
+-+
+-+  async function handleSubmit(e: React.FormEvent) {
+-+    e.preventDefault()
+-+    setLoading(true)
+-+    try {
+-+      await onSubmit(formData)
+-+    } finally {
+-+      setLoading(false)
+-+    }
+-+  }
+-+
+-+  return (
+-+    <form onSubmit={handleSubmit} className="space-y-4">
+-+      <div className="grid grid-cols-2 gap-4">
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Solicitante</label>
+-+          <Input
+-+            required
+-+            placeholder="Nome de quem abriu o chamado"
+-+            value={formData.requesterName}
+-+            onChange={e => setFormData({ ...formData, requesterName: e.target.value })}
+-+          />
+-+        </div>
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Setor</label>
+-+          <Input
+-+            required
+-+            placeholder="Ex: Escritório, Barracão..."
+-+            value={formData.sector}
+-+            onChange={e => setFormData({ ...formData, sector: e.target.value })}
+-+          />
+-+        </div>
+-+      </div>
+-+
+-+      <div className="grid grid-cols-2 gap-4">
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Categoria</label>
+-+          <select
+-+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+            value={formData.category}
+-+            onChange={e => setFormData({ ...formData, category: e.target.value })}
+-+          >
+-+            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+-+          </select>
+-+        </div>
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Prioridade</label>
+-+          <select
+-+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+            value={formData.priority}
+-+            onChange={e => setFormData({ ...formData, priority: e.target.value })}
+-+          >
+-+            <option value="BAIXA">Baixa</option>
+-+            <option value="MEDIA">Média</option>
+-+            <option value="ALTA">Alta</option>
+-+            <option value="CRITICA">Crítica</option>
+-+          </select>
+-+        </div>
+-+      </div>
+-+
+-+      <div className="space-y-2">
+-+        <label className="text-sm font-medium">Descrição do Problema</label>
+-+        <textarea
+-+          required
+-+          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+          placeholder="Descreva o que está acontecendo..."
+-+          value={formData.description}
+-+          onChange={e => setFormData({ ...formData, description: e.target.value })}
+-+        />
+-+      </div>
+-+
+-+      <div className="grid grid-cols-2 gap-4">
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Equipamento Relacionado</label>
+-+          <select
+-+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+            value={formData.assetId}
+-+            onChange={e => setFormData({ ...formData, assetId: e.target.value })}
+-+          >
+-+            <option value="">Nenhum</option>
+-+            {assets.map(a => (
+-+              <option key={a.id} value={a.id}>{a.tag} - {a.name}</option>
+-+            ))}
+-+          </select>
+-+        </div>
+-+        <div className="space-y-2">
+-+          <label className="text-sm font-medium">Status</label>
+-+          <select
+-+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+            value={formData.status}
+-+            onChange={e => setFormData({ ...formData, status: e.target.value })}
+-+          >
+-+            <option value="ABERTO">Aberto</option>
+-+            <option value="EM_ANDAMENTO">Em Andamento</option>
+-+            <option value="AGUARDANDO_PECA">Aguardando Peça</option>
+-+            <option value="CONCLUIDO">Concluído</option>
+-+          </select>
+-+        </div>
+-+      </div>
+-+
+-+      <div className="space-y-2">
+-+        <label className="text-sm font-medium">Solução Aplicada (opcional)</label>
+-+        <textarea
+-+          className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+-+          placeholder="O que foi feito para resolver..."
+-+          value={formData.solution}
+-+          onChange={e => setFormData({ ...formData, solution: e.target.value })}
+-+        />
+-+      </div>
+-+
+-+      <label className="flex items-center gap-2 text-sm font-medium">
+-+        <input
+-+          type="checkbox"
+-+          checked={formData.recurring}
+-+          onChange={e => setFormData({ ...formData, recurring: e.target.checked })}
+-+        />
+-+        Problema recorrente (já aconteceu antes)
+-+      </label>
+-+
+-+      <div className="flex justify-end gap-3 pt-4 border-t">
+-+        <Button variant="outline" type="button" onClick={onCancel}>Cancelar</Button>
+-+        <Button type="submit" disabled={loading}>
+-+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : initialData ? "Atualizar" : "Abrir"} Chamado
+-+        </Button>
+-+      </div>
+-+    </form>
+-+  )
+-+}
+diff --git a/package.json b/package.json
+index 9d10220..539586d 100644
+--- a/package.json
++++ b/package.json
+@@ -25,6 +25,7 @@
+     "qrcode": "^1.5.4",
+     "react": "19.2.4",
+     "react-dom": "19.2.4",
++    "recharts": "^2.15.0",
+     "tailwind-merge": "^3.5.0"
+   },
+   "devDependencies": {
+diff --git a/src/app/(dashboard)/dashboard/page.tsx b/src/app/(dashboard)/dashboard/page.tsx
+index 251db1e..d85bc82 100644
+--- a/src/app/(dashboard)/dashboard/page.tsx
++++ b/src/app/(dashboard)/dashboard/page.tsx
+@@ -10,7 +10,22 @@ import {
+   ArrowUpRight,
+   Calendar,
+   Loader2,
++  TimerReset,
++  ShieldCheck,
++  ShieldAlert,
++  Clock3,
+ } from "lucide-react"
++import {
++  AreaChart,
++  Area,
++  BarChart,
++  Bar,
++  XAxis,
++  YAxis,
++  CartesianGrid,
++  Tooltip,
++  ResponsiveContainer,
++} from "recharts"
+ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+ import { Button } from "@/components/ui/button"
+ import { cn } from "@/lib/utils"
+@@ -33,6 +48,15 @@ type RecentAsset = {
+   } | null
+ }
+ 
++type SlaStats = {
++  openTickets: number
++  slaBreached: number
++  slaWithin: number
++  avgResolutionMinutes: number
++  ticketsByDay: { date: string; abertos: number }[]
++  ticketsByCategory: { category: string; count: number }[]
++}
++
+ type DashboardStats = {
+   totalAssets: number
+   totalUsers: number
+@@ -40,6 +64,7 @@ type DashboardStats = {
+   alertsCount: number
+   assetsByStatus: AssetStatusItem[]
+   recentAssets: RecentAsset[]
++  sla: SlaStats
+ }
+ 
+ export default function DashboardPage() {
+@@ -160,6 +185,99 @@ export default function DashboardPage() {
+         ))}
+       </div>
+ 
++      <div>
++        <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
++          SLA de Chamados
++        </h2>
++        <div className="grid gap-6 sm:grid-cols-3 mb-6">
++          <Card className="bg-emerald-500/5 border-emerald-500/20">
++            <CardHeader className="pb-2">
++              <CardTitle className="text-sm font-medium flex items-center gap-2">
++                <ShieldCheck className="h-4 w-4 text-emerald-500" /> Dentro do Prazo
++              </CardTitle>
++            </CardHeader>
++            <CardContent>
++              <div className="text-3xl font-bold">{stats?.sla?.slaWithin ?? 0}</div>
++              <p className="text-xs text-muted-foreground mt-1">Chamados no prazo do SLA</p>
++            </CardContent>
++          </Card>
++          <Card className="bg-red-500/5 border-red-500/20">
++            <CardHeader className="pb-2">
++              <CardTitle className="text-sm font-medium flex items-center gap-2">
++                <ShieldAlert className="h-4 w-4 text-red-500" /> SLA Estourado
++              </CardTitle>
++            </CardHeader>
++            <CardContent>
++              <div className="text-3xl font-bold">{stats?.sla?.slaBreached ?? 0}</div>
++              <p className="text-xs text-muted-foreground mt-1">Precisam de atenção imediata</p>
++            </CardContent>
++          </Card>
++          <Card className="bg-blue-500/5 border-blue-500/20">
++            <CardHeader className="pb-2">
++              <CardTitle className="text-sm font-medium flex items-center gap-2">
++                <Clock3 className="h-4 w-4 text-blue-500" /> Tempo Médio de Resolução
++              </CardTitle>
++            </CardHeader>
++            <CardContent>
++              <div className="text-3xl font-bold">
++                {stats?.sla?.avgResolutionMinutes
++                  ? stats.sla.avgResolutionMinutes < 60
++                    ? `${stats.sla.avgResolutionMinutes}min`
++                    : `${(stats.sla.avgResolutionMinutes / 60).toFixed(1)}h`
++                  : "—"}
++              </div>
++              <p className="text-xs text-muted-foreground mt-1">Média dos chamados concluídos</p>
++            </CardContent>
++          </Card>
++        </div>
++
++        <div className="grid gap-6 lg:grid-cols-2">
++          <Card>
++            <CardHeader className="pb-2">
++              <CardTitle className="text-base font-semibold flex items-center gap-2">
++                <TimerReset className="h-4 w-4 text-primary" /> Chamados Abertos (14 dias)
++              </CardTitle>
++              <CardDescription>Volume diário de novos chamados</CardDescription>
++            </CardHeader>
++            <CardContent>
++              <ResponsiveContainer width="100%" height={220}>
++                <AreaChart data={stats?.sla?.ticketsByDay || []}>
++                  <defs>
++                    <linearGradient id="colorAbertos" x1="0" y1="0" x2="0" y2="1">
++                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
++                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
++                    </linearGradient>
++                  </defs>
++                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
++                  <XAxis dataKey="date" fontSize={11} tickLine={false} />
++                  <YAxis fontSize={11} tickLine={false} allowDecimals={false} width={28} />
++                  <Tooltip />
++                  <Area type="monotone" dataKey="abertos" stroke="#3b82f6" fill="url(#colorAbertos)" strokeWidth={2} />
++                </AreaChart>
++              </ResponsiveContainer>
++            </CardContent>
++          </Card>
++
++          <Card>
++            <CardHeader className="pb-2">
++              <CardTitle className="text-base font-semibold">Chamados por Categoria</CardTitle>
++              <CardDescription>As categorias que mais geram chamados</CardDescription>
++            </CardHeader>
++            <CardContent>
++              <ResponsiveContainer width="100%" height={220}>
++                <BarChart data={stats?.sla?.ticketsByCategory || []} layout="vertical" margin={{ left: 8 }}>
++                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} horizontal={false} />
++                  <XAxis type="number" fontSize={11} allowDecimals={false} />
++                  <YAxis type="category" dataKey="category" fontSize={11} width={90} tickLine={false} />
++                  <Tooltip />
++                  <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
++                </BarChart>
++              </ResponsiveContainer>
++            </CardContent>
++          </Card>
++        </div>
++      </div>
++
+       <div className="grid gap-6 lg:grid-cols-7">
+         <Card className="lg:col-span-4">
+           <CardHeader className="pb-4">
+diff --git a/src/app/(dashboard)/tickets/page.tsx b/src/app/(dashboard)/tickets/page.tsx
+index 444a029..b22daec 100644
+--- a/src/app/(dashboard)/tickets/page.tsx
++++ b/src/app/(dashboard)/tickets/page.tsx
+@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
+ import { Badge } from "@/components/ui/badge"
+ import { Modal } from "@/components/ui/modal"
+ import { cn } from "@/lib/utils"
++import { getSlaStatus } from "@/lib/sla"
+ import { TicketForm } from "@/components/features/tickets/TicketForm"
+ 
+ const PRIORITY_STYLE: Record<string, string> = {
+@@ -86,6 +87,7 @@ export default function TicketsPage() {
+   const openCount = tickets.filter(t => t.status !== "CONCLUIDO").length
+   const criticalOpenCount = tickets.filter(t => t.status !== "CONCLUIDO" && t.priority === "CRITICA").length
+   const closedCount = tickets.filter(t => t.status === "CONCLUIDO").length
++  const slaBreachedCount = tickets.filter(t => !getSlaStatus(t).isResolved && getSlaStatus(t).isBreached).length
+ 
+   return (
+     <div className="space-y-6 animate-in fade-in duration-500">
+@@ -100,7 +102,7 @@ export default function TicketsPage() {
+         </Button>
+       </div>
+ 
+-      <div className="grid gap-6 md:grid-cols-3">
++      <div className="grid gap-6 md:grid-cols-4">
+         <Card className="bg-amber-500/5 border-amber-500/20">
+           <CardHeader className="pb-2">
+             <CardTitle className="text-sm font-medium flex items-center gap-2">
+@@ -131,6 +133,16 @@ export default function TicketsPage() {
+             <div className="text-2xl font-bold">{String(closedCount).padStart(2, '0')}</div>
+           </CardContent>
+         </Card>
++        <Card className="bg-rose-500/5 border-rose-500/20">
++          <CardHeader className="pb-2">
++            <CardTitle className="text-sm font-medium flex items-center gap-2">
++              <AlertTriangle className="h-4 w-4 text-rose-500" /> SLA Estourado
++            </CardTitle>
++          </CardHeader>
++          <CardContent>
++            <div className="text-2xl font-bold">{String(slaBreachedCount).padStart(2, '0')}</div>
++          </CardContent>
++        </Card>
+       </div>
+ 
+       <Card>
+@@ -178,6 +190,25 @@ export default function TicketsPage() {
+                             Recorrente
+                           </Badge>
+                         )}
++                        {(() => {
++                          const sla = getSlaStatus(t)
++                          return (
++                            <Badge
++                              className={cn(
++                                "text-[10px] font-normal py-0 h-4 border",
++                                sla.isResolved
++                                  ? sla.isBreached
++                                    ? "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
++                                    : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
++                                  : sla.isBreached
++                                  ? "bg-red-500/10 text-red-500 border-red-500/20"
++                                  : "bg-blue-500/10 text-blue-500 border-blue-500/20"
++                              )}
++                            >
++                              SLA: {sla.label}
++                            </Badge>
++                          )
++                        })()}
+                       </div>
+                       <p className="text-xs text-muted-foreground mt-1 max-w-xl truncate">
+                         {t.description} — aberto por {t.requesterName} em {new Date(t.openedAt).toLocaleDateString()}
+diff --git a/src/app/api/dashboard/stats/route.ts b/src/app/api/dashboard/stats/route.ts
+index d554b7a..0729c04 100644
+--- a/src/app/api/dashboard/stats/route.ts
++++ b/src/app/api/dashboard/stats/route.ts
+@@ -1,6 +1,7 @@
+ import { NextResponse } from "next/server"
+ import prisma from "@/lib/prisma"
+ import { getSession } from "@/lib/auth"
++import { getSlaStatus } from "@/lib/sla"
+ 
+ export async function GET() {
+   const session = await getSession()
+@@ -9,7 +10,7 @@ export async function GET() {
+   }
+ 
+   try {
+-    const [totalAssets, totalUsers, maintenanceCount, pendingActions, assetsByStatus] = await Promise.all([
++    const [totalAssets, totalUsers, maintenanceCount, pendingActions, assetsByStatus, allTickets] = await Promise.all([
+       prisma.asset.count(),
+       prisma.user.count(),
+       prisma.asset.count({ where: { status: "MANUTENCAO" } }),
+@@ -23,7 +24,10 @@ export async function GET() {
+       prisma.asset.groupBy({
+         by: ["status"],
+         _count: { _all: true }
+-      })
++      }),
++      prisma.ticket.findMany({
++        select: { id: true, priority: true, status: true, category: true, openedAt: true, closedAt: true },
++      }),
+     ])
+ 
+     const recentAssets = await prisma.asset.findMany({
+@@ -32,13 +36,66 @@ export async function GET() {
+       include: { sector: true }
+     })
+ 
++    // --- SLA ---
++    let slaBreached = 0
++    let slaWithin = 0
++    let resolvedCount = 0
++    let resolvedMinutesSum = 0
++
++    for (const t of allTickets) {
++      const sla = getSlaStatus(t)
++      if (sla.isBreached) slaBreached++
++      else slaWithin++
++
++      if (t.status === "CONCLUIDO" && t.closedAt) {
++        resolvedCount++
++        resolvedMinutesSum += (new Date(t.closedAt).getTime() - new Date(t.openedAt).getTime()) / 60000
++      }
++    }
++    const avgResolutionMinutes = resolvedCount > 0 ? Math.round(resolvedMinutesSum / resolvedCount) : 0
++
++    // --- Chamados abertos por dia (últimos 14 dias) ---
++    const days: { date: string; abertos: number }[] = []
++    const dayMap = new Map<string, number>()
++    for (let i = 13; i >= 0; i--) {
++      const d = new Date()
++      d.setDate(d.getDate() - i)
++      const key = d.toISOString().split("T")[0]
++      dayMap.set(key, 0)
++    }
++    for (const t of allTickets) {
++      const key = new Date(t.openedAt).toISOString().split("T")[0]
++      if (dayMap.has(key)) dayMap.set(key, (dayMap.get(key) || 0) + 1)
++    }
++    for (const [date, abertos] of dayMap.entries()) {
++      days.push({ date: date.slice(5), abertos })
++    }
++
++    // --- Chamados por categoria ---
++    const categoryMap = new Map<string, number>()
++    for (const t of allTickets) {
++      categoryMap.set(t.category, (categoryMap.get(t.category) || 0) + 1)
++    }
++    const ticketsByCategory = Array.from(categoryMap.entries())
++      .map(([category, count]) => ({ category, count }))
++      .sort((a, b) => b.count - a.count)
++      .slice(0, 6)
++
+     return NextResponse.json({
+       totalAssets,
+       totalUsers,
+       maintenanceCount,
+       alertsCount: pendingActions,
+       assetsByStatus,
+-      recentAssets
++      recentAssets,
++      sla: {
++        openTickets: allTickets.filter((t: { status: string }) => t.status !== "CONCLUIDO").length,
++        slaBreached,
++        slaWithin,
++        avgResolutionMinutes,
++        ticketsByDay: days,
++        ticketsByCategory,
++      },
+     })
+   } catch (error) {
+     console.error("Dashboard Stats Error:", error)
+diff --git a/src/lib/sla.ts b/src/lib/sla.ts
+new file mode 100644
+index 0000000..f1d97a1
+--- /dev/null
++++ b/src/lib/sla.ts
+@@ -0,0 +1,52 @@
++// Configuração de SLA por prioridade (em minutos).
++// Cálculo é 24/7 corrido (sem considerar horário comercial/feriados) — ajustar aqui se precisar refinar.
++export const SLA_CONFIG: Record<string, { response: number; resolution: number; label: string }> = {
++  CRITICA: { response: 30, resolution: 4 * 60, label: "Crítica" },
++  ALTA: { response: 2 * 60, resolution: 8 * 60, label: "Alta" },
++  MEDIA: { response: 4 * 60, resolution: 24 * 60, label: "Média" },
++  BAIXA: { response: 8 * 60, resolution: 72 * 60, label: "Baixa" },
++}
++
++export interface SlaTicketInput {
++  priority: string
++  status: string
++  openedAt: string | Date
++  closedAt?: string | Date | null
++}
++
++export interface SlaResult {
++  deadline: Date
++  isBreached: boolean
++  isResolved: boolean
++  minutesRemaining: number
++  label: string
++}
++
++export function getSlaStatus(ticket: SlaTicketInput): SlaResult {
++  const config = SLA_CONFIG[ticket.priority] || SLA_CONFIG.MEDIA
++  const opened = new Date(ticket.openedAt)
++  const deadline = new Date(opened.getTime() + config.resolution * 60000)
++  const isResolved = ticket.status === "CONCLUIDO" && !!ticket.closedAt
++  const reference = isResolved ? new Date(ticket.closedAt as string | Date) : new Date()
++  const minutesRemaining = Math.round((deadline.getTime() - reference.getTime()) / 60000)
++  const isBreached = minutesRemaining < 0
++
++  let label: string
++  if (isResolved) {
++    label = isBreached ? "Resolvido fora do prazo" : "Resolvido dentro do prazo"
++  } else if (isBreached) {
++    label = `Atrasado há ${formatMinutes(Math.abs(minutesRemaining))}`
++  } else {
++    label = `${formatMinutes(minutesRemaining)} restantes`
++  }
++
++  return { deadline, isBreached, isResolved, minutesRemaining, label }
++}
++
++function formatMinutes(minutes: number): string {
++  if (minutes < 60) return `${minutes}min`
++  const hours = Math.floor(minutes / 60)
++  if (hours < 24) return `${hours}h`
++  const days = Math.floor(hours / 24)
++  return `${days}d`
++}
