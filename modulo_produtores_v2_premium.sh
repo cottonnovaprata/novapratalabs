@@ -1,13 +1,14 @@
 #!/bin/bash
 set -e
-echo "==> Módulo Produtores - visual premium (safra 2026)"
+echo "==> Módulo Produtores COMPLETO - CRUD de fazenda/talhão/lote + export Excel"
 
 # 0) Limpeza de tentativas antigas / arquivos soltos de scripts anteriores
 rm -rf app/produtores components/produtores 'src/app/(dashboard)/produtores' src/components/features/produtores 2>/dev/null || true
 rm -f prisma/manual-sql/2026_produtores.sql prisma/manual-sql/2026_producers.sql prisma/manual-sql/2026_producers_v2_campos.sql 2>/dev/null || true
 rm -f prisma/seed-produtores.ts 2>/dev/null || true
+rm -f modulo_produtores_completo*.sh 2>/dev/null || true
 
-# 1) Schema Prisma - idempotente (só mexe se precisar)
+# 1) Schema Prisma - idempotente
 python3 << 'PYPATCH'
 path = 'prisma/schema.prisma'
 with open(path, encoding='utf-8') as f:
@@ -385,13 +386,405 @@ export async function DELETE(
 NOVAPRATA_EOF
 echo "==> src/app/api/producers/[id]/route.ts escrito"
 
+mkdir -p "src/app/api/producers/[id]/farms"
+cat > "src/app/api/producers/[id]/farms/route.ts" << 'NOVAPRATA_EOF'
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const { name } = body
+
+    if (!name) {
+      return NextResponse.json({ error: "Nome da fazenda é obrigatório" }, { status: 400 })
+    }
+
+    const farm = await prisma.farm.create({
+      data: { name, producerId: id },
+    })
+
+    return NextResponse.json(farm)
+  } catch (error) {
+    console.error("Error creating farm:", error)
+    return NextResponse.json({ error: "Failed to create farm" }, { status: 500 })
+  }
+}
+NOVAPRATA_EOF
+echo "==> src/app/api/producers/[id]/farms/route.ts escrito"
+
+mkdir -p "src/app/api/producers/[id]/harvest-lots"
+cat > "src/app/api/producers/[id]/harvest-lots/route.ts" << 'NOVAPRATA_EOF'
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const { blockNumber, plot, harvestDate, classification, bales, totalWeightKg, status, invoiceNumber, notes, season } = body
+
+    const lot = await prisma.harvestLot.create({
+      data: {
+        blockNumber: blockNumber || null,
+        producerId: id,
+        plot: plot || null,
+        harvestDate: harvestDate ? new Date(harvestDate) : null,
+        classification: classification || null,
+        bales: Number(bales) || 0,
+        totalWeightKg: Number(totalWeightKg) || 0,
+        status: status || "colhido",
+        invoiceNumber: invoiceNumber || null,
+        notes: notes || null,
+        season: season || "2026",
+      },
+    })
+
+    return NextResponse.json(lot)
+  } catch (error) {
+    console.error("Error creating harvest lot:", error)
+    return NextResponse.json({ error: "Failed to create harvest lot" }, { status: 500 })
+  }
+}
+NOVAPRATA_EOF
+echo "==> src/app/api/producers/[id]/harvest-lots/route.ts escrito"
+
+mkdir -p "src/app/api/producers/export"
+cat > "src/app/api/producers/export/route.ts" << 'NOVAPRATA_EOF'
+import { NextResponse } from "next/server"
+import ExcelJS from "exceljs"
+import prisma from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+export async function GET() {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const producers = await prisma.producer.findMany({
+      include: {
+        farms: { include: { plots: true } },
+        harvestLots: true,
+      },
+      orderBy: { name: "asc" },
+    })
+
+    const workbook = new ExcelJS.Workbook()
+
+    const producersSheet = workbook.addWorksheet("Produtores")
+    producersSheet.addRow([
+      "Nome", "CPF/CNPJ", "Inscrição Estadual", "Status", "Telefone", "E-mail", "WhatsApp",
+      "Área total (ha)", "Fazendas", "Talhões", "Fardos colhidos",
+    ])
+    for (const p of producers) {
+      const areaTotal = p.farms.reduce((acc, f) => acc + f.plots.reduce((a, t) => a + t.areaHa, 0), 0)
+      const totalPlots = p.farms.reduce((acc, f) => acc + f.plots.length, 0)
+      const bales = p.harvestLots.reduce((acc, l) => acc + l.bales, 0)
+      producersSheet.addRow([
+        p.name, p.document || "", p.stateRegistration || "", p.status, p.phone || "", p.email || "", p.whatsapp || "",
+        areaTotal, p.farms.length, totalPlots, bales,
+      ])
+    }
+    producersSheet.getRow(1).font = { bold: true }
+    producersSheet.columns.forEach((col) => { col.width = 22 })
+
+    const plotsSheet = workbook.addWorksheet("Fazendas e Talhões")
+    plotsSheet.addRow(["Produtor", "Fazenda", "Talhão", "Área (ha)", "Variedade", "Área dividida", "Safra"])
+    for (const p of producers) {
+      for (const f of p.farms) {
+        for (const t of f.plots) {
+          plotsSheet.addRow([p.name, f.name, t.name, t.areaHa, t.variety, t.splitArea ? "Sim" : "Não", t.season])
+        }
+      }
+    }
+    plotsSheet.getRow(1).font = { bold: true }
+    plotsSheet.columns.forEach((col) => { col.width = 22 })
+
+    const lotsSheet = workbook.addWorksheet("Colheita e Lotes")
+    lotsSheet.addRow(["Produtor", "Bloco", "Talhão", "Data colheita", "Classificação", "Fardos", "Peso total (kg)", "Status", "Nota fiscal"])
+    for (const p of producers) {
+      for (const l of p.harvestLots) {
+        lotsSheet.addRow([
+          p.name, l.blockNumber || "", l.plot || "",
+          l.harvestDate ? new Date(l.harvestDate).toLocaleDateString("pt-BR") : "",
+          l.classification || "", l.bales, l.totalWeightKg, l.status, l.invoiceNumber || "",
+        ])
+      }
+    }
+    lotsSheet.getRow(1).font = { bold: true }
+    lotsSheet.columns.forEach((col) => { col.width = 20 })
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const filename = `produtores-safra-2026-${new Date().toISOString().slice(0, 10)}.xlsx`
+
+    return new NextResponse(new Uint8Array(buffer), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Cache-Control": "no-store",
+      },
+    })
+  } catch (error) {
+    console.error("Error exporting producers:", error)
+    return NextResponse.json({ error: "Failed to export producers" }, { status: 500 })
+  }
+}
+NOVAPRATA_EOF
+echo "==> src/app/api/producers/export/route.ts escrito"
+
+mkdir -p "src/app/api/farms/[id]"
+cat > "src/app/api/farms/[id]/route.ts" << 'NOVAPRATA_EOF'
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const { name } = body
+
+    const farm = await prisma.farm.update({
+      where: { id },
+      data: { name },
+    })
+
+    return NextResponse.json(farm)
+  } catch (error) {
+    console.error("Error updating farm:", error)
+    return NextResponse.json({ error: "Failed to update farm" }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    await prisma.farm.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting farm:", error)
+    return NextResponse.json({ error: "Failed to delete farm" }, { status: 500 })
+  }
+}
+NOVAPRATA_EOF
+echo "==> src/app/api/farms/[id]/route.ts escrito"
+
+mkdir -p "src/app/api/farms/[id]/plots"
+cat > "src/app/api/farms/[id]/plots/route.ts" << 'NOVAPRATA_EOF'
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const { name, areaHa, variety, splitArea, notes, season } = body
+
+    if (!name || !areaHa || !variety) {
+      return NextResponse.json({ error: "Talhão, área e variedade são obrigatórios" }, { status: 400 })
+    }
+
+    const plot = await prisma.plot.create({
+      data: {
+        name,
+        areaHa: Number(areaHa),
+        variety,
+        splitArea: !!splitArea,
+        notes: notes || null,
+        season: season || "2026",
+        farmId: id,
+      },
+    })
+
+    return NextResponse.json(plot)
+  } catch (error) {
+    console.error("Error creating plot:", error)
+    return NextResponse.json({ error: "Failed to create plot" }, { status: 500 })
+  }
+}
+NOVAPRATA_EOF
+echo "==> src/app/api/farms/[id]/plots/route.ts escrito"
+
+mkdir -p "src/app/api/plots/[id]"
+cat > "src/app/api/plots/[id]/route.ts" << 'NOVAPRATA_EOF'
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const { name, areaHa, variety, splitArea, notes, season } = body
+
+    const plot = await prisma.plot.update({
+      where: { id },
+      data: {
+        name,
+        areaHa: Number(areaHa),
+        variety,
+        splitArea: !!splitArea,
+        notes: notes || null,
+        season: season || "2026",
+      },
+    })
+
+    return NextResponse.json(plot)
+  } catch (error) {
+    console.error("Error updating plot:", error)
+    return NextResponse.json({ error: "Failed to update plot" }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    await prisma.plot.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting plot:", error)
+    return NextResponse.json({ error: "Failed to delete plot" }, { status: 500 })
+  }
+}
+NOVAPRATA_EOF
+echo "==> src/app/api/plots/[id]/route.ts escrito"
+
+mkdir -p "src/app/api/harvest-lots/[id]"
+cat > "src/app/api/harvest-lots/[id]/route.ts" << 'NOVAPRATA_EOF'
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const { blockNumber, plot, harvestDate, classification, bales, totalWeightKg, status, invoiceNumber, notes } = body
+
+    const lot = await prisma.harvestLot.update({
+      where: { id },
+      data: {
+        blockNumber: blockNumber || null,
+        plot: plot || null,
+        harvestDate: harvestDate ? new Date(harvestDate) : null,
+        classification: classification || null,
+        bales: Number(bales) || 0,
+        totalWeightKg: Number(totalWeightKg) || 0,
+        status: status || "colhido",
+        invoiceNumber: invoiceNumber || null,
+        notes: notes || null,
+      },
+    })
+
+    return NextResponse.json(lot)
+  } catch (error) {
+    console.error("Error updating harvest lot:", error)
+    return NextResponse.json({ error: "Failed to update harvest lot" }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    await prisma.harvestLot.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting harvest lot:", error)
+    return NextResponse.json({ error: "Failed to delete harvest lot" }, { status: 500 })
+  }
+}
+NOVAPRATA_EOF
+echo "==> src/app/api/harvest-lots/[id]/route.ts escrito"
+
 mkdir -p "src/app/(dashboard)/producers"
 cat > "src/app/(dashboard)/producers/page.tsx" << 'NOVAPRATA_EOF'
 "use client"
 
 import React from "react"
 import Link from "next/link"
-import { Search, UserPlus, Loader2, RefreshCcw, MapPin, LayoutGrid, Package, ArrowUpRight } from "lucide-react"
+import { Search, UserPlus, Loader2, RefreshCcw, MapPin, LayoutGrid, Package, ArrowUpRight, Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -421,6 +814,8 @@ export default function ProducersPage() {
   const [producers, setProducers] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
   const [searchTerm, setSearchTerm] = React.useState("")
+  const [statusFilter, setStatusFilter] = React.useState("todos")
+  const [exporting, setExporting] = React.useState(false)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [editingProducer, setEditingProducer] = React.useState<any>(null)
   const [error, setError] = React.useState<string | null>(null)
@@ -485,9 +880,31 @@ export default function ProducersPage() {
     }
   }
 
-  const filtered = producers.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filtered = producers
+    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(p => statusFilter === "todos" || p.status === statusFilter)
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const res = await fetch("/api/producers/export")
+      if (!res.ok) throw new Error("Falha ao exportar")
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `produtores-safra-2026-${new Date().toISOString().slice(0, 10)}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Error exporting:", error)
+      toastError("Erro ao exportar produtores")
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const totalArea = producers.reduce(
     (acc, p) => acc + (p.farms || []).reduce((a: number, f: any) => a + (f.plots || []).reduce((x: number, t: any) => x + t.areaHa, 0), 0),
@@ -520,6 +937,10 @@ export default function ProducersPage() {
           <Button variant="outline" size="sm" onClick={fetchProducers} disabled={loading}>
             <RefreshCcw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
             Sincronizar
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+            {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+            Exportar
           </Button>
           <Button
             size="sm"
@@ -554,14 +975,26 @@ export default function ProducersPage() {
         ))}
       </div>
 
-      <div className="relative flex-1 w-full">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--text-tertiary)" }} />
-        <Input
-          placeholder="Buscar por nome..."
-          className="pl-10 h-11"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-        />
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--text-tertiary)" }} />
+          <Input
+            placeholder="Buscar por nome..."
+            className="pl-10 h-11"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <select
+          className="h-11 rounded-lg border border-zinc-700/50 bg-background px-3 text-sm sm:w-48"
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+        >
+          <option value="todos">Todos os status</option>
+          <option value="ativo">Ativo</option>
+          <option value="pendente">Pendente</option>
+          <option value="inativo">Inativo</option>
+        </select>
       </div>
 
       {filtered.length === 0 ? (
@@ -648,14 +1081,22 @@ cat > "src/app/(dashboard)/producers/[id]/page.tsx" << 'NOVAPRATA_EOF'
 
 import React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Loader2, Phone, Mail, MessageCircle, MapPin, Building2, LayoutGrid, Package } from "lucide-react"
+import {
+  ArrowLeft, Loader2, Phone, Mail, MessageCircle, MapPin, Building2, LayoutGrid, Package,
+  Edit, Trash2, Plus,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Modal } from "@/components/ui/modal"
 import { AnimatedCounter } from "@/components/ui/animated-counter"
 import { AuroraGlow } from "@/components/aurora-glow"
 import { cn } from "@/lib/utils"
+import { useConfirm } from "@/components/confirm-dialog-provider"
+import { useToast } from "@/components/toast-provider"
+import { ProducerForm } from "@/components/features/producers/ProducerForm"
+import { FarmForm, PlotForm, HarvestLotForm } from "@/components/features/producers/FarmPlotHarvestForms"
 
 const TABS = ["Dados gerais", "Fazendas e talhões", "Safras", "Colheita e lotes", "Documentos"] as const
 
@@ -672,24 +1113,157 @@ function statusVariant(status: string) {
 export default function ProducerDetailPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
+  const confirmDialog = useConfirm()
+  const { success, error: toastError } = useToast()
+
   const [producer, setProducer] = React.useState<any>(null)
   const [loading, setLoading] = React.useState(true)
   const [tab, setTab] = React.useState<(typeof TABS)[number]>("Fazendas e talhões")
 
-  React.useEffect(() => {
-    async function fetchProducer() {
-      setLoading(true)
-      try {
-        const res = await fetch(`/api/producers/${params.id}`)
-        if (res.ok) setProducer(await res.json())
-      } catch (error) {
-        console.error("Error fetching producer:", error)
-      } finally {
-        setLoading(false)
-      }
+  const [editProducerOpen, setEditProducerOpen] = React.useState(false)
+  const [farmModal, setFarmModal] = React.useState<{ open: boolean; editing: any | null }>({ open: false, editing: null })
+  const [plotModal, setPlotModal] = React.useState<{ open: boolean; editing: any | null; farmId: string | null }>({ open: false, editing: null, farmId: null })
+  const [lotModal, setLotModal] = React.useState<{ open: boolean; editing: any | null }>({ open: false, editing: null })
+
+  const fetchProducer = React.useCallback(async () => {
+    try {
+      const res = await fetch(`/api/producers/${params.id}`)
+      if (res.ok) setProducer(await res.json())
+    } catch (error) {
+      console.error("Error fetching producer:", error)
+    } finally {
+      setLoading(false)
     }
-    if (params.id) fetchProducer()
   }, [params.id])
+
+  React.useEffect(() => { if (params.id) fetchProducer() }, [params.id, fetchProducer])
+
+  async function handleEditProducer(data: any) {
+    try {
+      const res = await fetch(`/api/producers/${params.id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+      })
+      if (res.ok) {
+        setEditProducerOpen(false)
+        success("Produtor atualizado")
+        fetchProducer()
+      } else {
+        toastError("Erro ao atualizar produtor")
+      }
+    } catch (error) {
+      console.error(error)
+      toastError("Erro ao atualizar produtor")
+    }
+  }
+
+  async function handleDeleteProducer() {
+    const ok = await confirmDialog({ title: "Excluir produtor", message: `Deseja realmente excluir ${producer.name}? Isso apaga fazendas, talhões e lotes vinculados.`, destructive: true })
+    if (!ok) return
+    try {
+      const res = await fetch(`/api/producers/${params.id}`, { method: "DELETE" })
+      if (res.ok) {
+        success("Produtor excluído")
+        router.push("/producers")
+      } else {
+        toastError("Erro ao excluir produtor")
+      }
+    } catch (error) {
+      console.error(error)
+      toastError("Erro ao excluir produtor")
+    }
+  }
+
+  async function handleFarmSubmit(data: any) {
+    try {
+      const url = farmModal.editing ? `/api/farms/${farmModal.editing.id}` : `/api/producers/${params.id}/farms`
+      const method = farmModal.editing ? "PUT" : "POST"
+      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
+      if (res.ok) {
+        success(farmModal.editing ? "Fazenda atualizada" : "Fazenda criada")
+        setFarmModal({ open: false, editing: null })
+        fetchProducer()
+      } else {
+        toastError("Erro ao salvar fazenda")
+      }
+    } catch (error) {
+      console.error(error)
+      toastError("Erro ao salvar fazenda")
+    }
+  }
+
+  async function handleDeleteFarm(farm: any) {
+    const ok = await confirmDialog({ title: "Excluir fazenda", message: `Excluir "${farm.name}" e todos os talhões dela?`, destructive: true })
+    if (!ok) return
+    try {
+      const res = await fetch(`/api/farms/${farm.id}`, { method: "DELETE" })
+      if (res.ok) { success("Fazenda excluída"); fetchProducer() } else { toastError("Erro ao excluir fazenda") }
+    } catch (error) {
+      console.error(error)
+      toastError("Erro ao excluir fazenda")
+    }
+  }
+
+  async function handlePlotSubmit(data: any) {
+    try {
+      const url = plotModal.editing ? `/api/plots/${plotModal.editing.id}` : `/api/farms/${plotModal.farmId}/plots`
+      const method = plotModal.editing ? "PUT" : "POST"
+      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
+      if (res.ok) {
+        success(plotModal.editing ? "Talhão atualizado" : "Talhão criado")
+        setPlotModal({ open: false, editing: null, farmId: null })
+        fetchProducer()
+      } else {
+        toastError("Erro ao salvar talhão")
+      }
+    } catch (error) {
+      console.error(error)
+      toastError("Erro ao salvar talhão")
+    }
+  }
+
+  async function handleDeletePlot(plot: any) {
+    const ok = await confirmDialog({ title: "Excluir talhão", message: `Excluir o talhão "${plot.name}"?`, destructive: true })
+    if (!ok) return
+    try {
+      const res = await fetch(`/api/plots/${plot.id}`, { method: "DELETE" })
+      if (res.ok) { success("Talhão excluído"); fetchProducer() } else { toastError("Erro ao excluir talhão") }
+    } catch (error) {
+      console.error(error)
+      toastError("Erro ao excluir talhão")
+    }
+  }
+
+  async function handleLotSubmit(data: any) {
+    try {
+      const url = lotModal.editing ? `/api/harvest-lots/${lotModal.editing.id}` : `/api/producers/${params.id}/harvest-lots`
+      const method = lotModal.editing ? "PUT" : "POST"
+      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
+      if (res.ok) {
+        success(lotModal.editing ? "Lote atualizado" : "Lote lançado")
+        setLotModal({ open: false, editing: null })
+        fetchProducer()
+      } else {
+        toastError("Erro ao salvar lote")
+      }
+    } catch (error) {
+      console.error(error)
+      toastError("Erro ao salvar lote")
+    }
+  }
+
+  async function handleDeleteLot(lot: any) {
+    const ok = await confirmDialog({ title: "Excluir lote", message: `Excluir o lote "${lot.blockNumber || lot.id}"?`, destructive: true })
+    if (!ok) return
+    try {
+      const res = await fetch(`/api/harvest-lots/${lot.id}`, { method: "DELETE" })
+      if (res.ok) { success("Lote excluído"); fetchProducer() } else { toastError("Erro ao excluir lote") }
+    } catch (error) {
+      console.error(error)
+      toastError("Erro ao excluir lote")
+    }
+  }
 
   if (loading) {
     return (
@@ -725,10 +1299,21 @@ export default function ProducerDetailPage() {
     <div className="relative space-y-6 animate-in fade-in duration-500 max-w-4xl">
       <AuroraGlow />
 
-      <Button variant="ghost" size="sm" onClick={() => router.push("/producers")}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Voltar
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" onClick={() => router.push("/producers")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setEditProducerOpen(true)} size="sm">
+            <Edit className="mr-2 h-4 w-4" />
+            Editar
+          </Button>
+          <Button onClick={handleDeleteProducer} variant="outline" size="sm" style={{ color: "var(--status-error)" }}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
       <Card>
         <CardContent className="p-5 sm:p-6 flex items-center justify-between flex-wrap gap-4">
@@ -809,31 +1394,64 @@ export default function ProducerDetailPage() {
 
       {tab === "Fazendas e talhões" && (
         <div className="space-y-4">
+          <div className="flex justify-end">
+            <Button size="sm" onClick={() => setFarmModal({ open: true, editing: null })}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova fazenda
+            </Button>
+          </div>
+
           {(!producer.farms || producer.farms.length === 0) && (
-            <Card><CardContent className="p-6 text-sm" style={{ color: "var(--text-tertiary)" }}>Nenhuma fazenda/talhão cadastrado ainda.</CardContent></Card>
+            <Card><CardContent className="p-6 text-sm" style={{ color: "var(--text-tertiary)" }}>Nenhuma fazenda cadastrada ainda.</CardContent></Card>
           )}
+
           {(producer.farms || []).map((f: any) => (
             <Card key={f.id}>
               <CardContent className="p-5 sm:p-6">
-                <p className="font-semibold text-sm mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                  <MapPin className="h-4 w-4 text-emerald-500" />{f.name}
-                </p>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="font-semibold text-sm flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                    <MapPin className="h-4 w-4 text-emerald-500" />{f.name}
+                  </p>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => setPlotModal({ open: true, editing: null, farmId: f.id })}>
+                      <Plus className="mr-1 h-3.5 w-3.5" />
+                      Talhão
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFarmModal({ open: true, editing: f })}>
+                      <Edit className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteFarm(f)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ borderBottom: "1px solid var(--border)" }}>
                       <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Talhão</th>
                       <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Área</th>
                       <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Variedade</th>
+                      <th className="pb-2.5 text-right text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {f.plots.map((t: any) => (
-                      <tr key={t.id} className="transition-colors duration-200 hover:bg-zinc-500/5" style={{ borderBottom: "1px solid var(--border)" }}>
+                      <tr key={t.id} className="group transition-colors duration-200 hover:bg-zinc-500/5" style={{ borderBottom: "1px solid var(--border)" }}>
                         <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{t.name}</td>
                         <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{t.areaHa} ha</td>
                         <td className="py-2.5" style={{ color: "var(--text-primary)" }}>
                           {t.variety}
                           {t.splitArea && <span className="ml-2 text-xs" style={{ color: "var(--text-tertiary)" }}>(área dividida)</span>}
+                        </td>
+                        <td className="py-2.5 text-right">
+                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setPlotModal({ open: true, editing: t, farmId: f.id })}>
+                              <Edit className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeletePlot(t)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -852,6 +1470,12 @@ export default function ProducerDetailPage() {
       {tab === "Colheita e lotes" && (
         <Card>
           <CardContent className="p-5 sm:p-6">
+            <div className="flex justify-end mb-4">
+              <Button size="sm" onClick={() => setLotModal({ open: true, editing: null })}>
+                <Plus className="mr-2 h-4 w-4" />
+                Novo lote
+              </Button>
+            </div>
             {(!producer.harvestLots || producer.harvestLots.length === 0) ? (
               <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Nenhum lote lançado ainda.</p>
             ) : (
@@ -863,16 +1487,27 @@ export default function ProducerDetailPage() {
                     <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Fardos</th>
                     <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Peso (kg)</th>
                     <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Status</th>
+                    <th className="pb-2.5 text-right text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}></th>
                   </tr>
                 </thead>
                 <tbody>
                   {producer.harvestLots.map((l: any) => (
-                    <tr key={l.id} className="transition-colors duration-200 hover:bg-zinc-500/5" style={{ borderBottom: "1px solid var(--border)" }}>
+                    <tr key={l.id} className="group transition-colors duration-200 hover:bg-zinc-500/5" style={{ borderBottom: "1px solid var(--border)" }}>
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.blockNumber || "-"}</td>
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.plot || "-"}</td>
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.bales}</td>
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.totalWeightKg}</td>
                       <td className="py-2.5"><Badge variant="ghost">{l.status}</Badge></td>
+                      <td className="py-2.5 text-right">
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setLotModal({ open: true, editing: l })}>
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteLot(l)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -885,6 +1520,22 @@ export default function ProducerDetailPage() {
       {tab === "Documentos" && (
         <Card><CardContent className="p-5 sm:p-6 text-sm" style={{ color: "var(--text-tertiary)" }}>Upload de documentos entra aqui (contratos, CAR, notas).</CardContent></Card>
       )}
+
+      <Modal isOpen={editProducerOpen} onClose={() => setEditProducerOpen(false)} title="Editar Produtor">
+        <ProducerForm initialData={producer} onCancel={() => setEditProducerOpen(false)} onSubmit={handleEditProducer} />
+      </Modal>
+
+      <Modal isOpen={farmModal.open} onClose={() => setFarmModal({ open: false, editing: null })} title={farmModal.editing ? "Editar Fazenda" : "Nova Fazenda"}>
+        <FarmForm initialData={farmModal.editing} onCancel={() => setFarmModal({ open: false, editing: null })} onSubmit={handleFarmSubmit} />
+      </Modal>
+
+      <Modal isOpen={plotModal.open} onClose={() => setPlotModal({ open: false, editing: null, farmId: null })} title={plotModal.editing ? "Editar Talhão" : "Novo Talhão"}>
+        <PlotForm initialData={plotModal.editing} onCancel={() => setPlotModal({ open: false, editing: null, farmId: null })} onSubmit={handlePlotSubmit} />
+      </Modal>
+
+      <Modal isOpen={lotModal.open} onClose={() => setLotModal({ open: false, editing: null })} title={lotModal.editing ? "Editar Lote" : "Novo Lote de Colheita"}>
+        <HarvestLotForm initialData={lotModal.editing} onCancel={() => setLotModal({ open: false, editing: null })} onSubmit={handleLotSubmit} />
+      </Modal>
     </div>
   )
 }
@@ -1005,6 +1656,210 @@ export function ProducerForm({ initialData, onSubmit, onCancel }: ProducerFormPr
 NOVAPRATA_EOF
 echo "==> src/components/features/producers/ProducerForm.tsx escrito"
 
+mkdir -p "src/components/features/producers"
+cat > "src/components/features/producers/FarmPlotHarvestForms.tsx" << 'NOVAPRATA_EOF'
+"use client"
+
+import * as React from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Loader2 } from "lucide-react"
+
+export function FarmForm({ initialData, onSubmit, onCancel }: { initialData?: any; onSubmit: (d: any) => Promise<void>; onCancel: () => void }) {
+  const [loading, setLoading] = React.useState(false)
+  const [name, setName] = React.useState(initialData?.name || "")
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await onSubmit({ name })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Nome da fazenda</label>
+        <Input required value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Fazenda Boa Vista" />
+      </div>
+      <div className="flex justify-end gap-3 pt-2 border-t border-zinc-800/50">
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Salvar
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+export function PlotForm({ initialData, onSubmit, onCancel }: { initialData?: any; onSubmit: (d: any) => Promise<void>; onCancel: () => void }) {
+  const [loading, setLoading] = React.useState(false)
+  const [formData, setFormData] = React.useState({
+    name: initialData?.name || "",
+    areaHa: initialData?.areaHa || "",
+    variety: initialData?.variety || "",
+    splitArea: initialData?.splitArea || false,
+    season: initialData?.season || "2026",
+    notes: initialData?.notes || "",
+  })
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await onSubmit(formData)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Talhão</label>
+          <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Ex: 01 e 02" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Área (ha)</label>
+          <Input required type="number" step="0.01" value={formData.areaHa} onChange={e => setFormData({ ...formData, areaHa: e.target.value })} />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Variedade</label>
+        <Input required value={formData.variety} onChange={e => setFormData({ ...formData, variety: e.target.value })} placeholder="Ex: FB 911" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Safra</label>
+          <Input value={formData.season} onChange={e => setFormData({ ...formData, season: e.target.value })} />
+        </div>
+        <div className="flex items-end pb-2">
+          <label className="text-sm font-medium flex items-center gap-2">
+            <input type="checkbox" checked={formData.splitArea} onChange={e => setFormData({ ...formData, splitArea: e.target.checked })} />
+            Área dividida entre variedades
+          </label>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Observações</label>
+        <textarea
+          className="flex w-full rounded-lg border border-zinc-700/50 bg-background px-3 py-2 text-sm min-h-[60px]"
+          value={formData.notes}
+          onChange={e => setFormData({ ...formData, notes: e.target.value })}
+        />
+      </div>
+      <div className="flex justify-end gap-3 pt-2 border-t border-zinc-800/50">
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Salvar
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+export function HarvestLotForm({ initialData, onSubmit, onCancel }: { initialData?: any; onSubmit: (d: any) => Promise<void>; onCancel: () => void }) {
+  const [loading, setLoading] = React.useState(false)
+  const [formData, setFormData] = React.useState({
+    blockNumber: initialData?.blockNumber || "",
+    plot: initialData?.plot || "",
+    harvestDate: initialData?.harvestDate ? String(initialData.harvestDate).slice(0, 10) : "",
+    classification: initialData?.classification || "",
+    bales: initialData?.bales || "",
+    totalWeightKg: initialData?.totalWeightKg || "",
+    status: initialData?.status || "colhido",
+    invoiceNumber: initialData?.invoiceNumber || "",
+    notes: initialData?.notes || "",
+  })
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await onSubmit(formData)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Nº do bloco</label>
+          <Input value={formData.blockNumber} onChange={e => setFormData({ ...formData, blockNumber: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Talhão</label>
+          <Input value={formData.plot} onChange={e => setFormData({ ...formData, plot: e.target.value })} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Data da colheita</label>
+          <Input type="date" value={formData.harvestDate} onChange={e => setFormData({ ...formData, harvestDate: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Classificação</label>
+          <Input value={formData.classification} onChange={e => setFormData({ ...formData, classification: e.target.value })} placeholder="Ex: 31.3" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Fardos</label>
+          <Input required type="number" value={formData.bales} onChange={e => setFormData({ ...formData, bales: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Peso total (kg)</label>
+          <Input required type="number" step="0.01" value={formData.totalWeightKg} onChange={e => setFormData({ ...formData, totalWeightKg: e.target.value })} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Status</label>
+          <select
+            className="flex h-9 w-full rounded-lg border border-zinc-700/50 bg-background px-3 py-2 text-sm"
+            value={formData.status}
+            onChange={e => setFormData({ ...formData, status: e.target.value })}
+          >
+            <option value="colhido">Colhido</option>
+            <option value="beneficiado">Beneficiado</option>
+            <option value="faturado">Faturado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Nota fiscal</label>
+          <Input value={formData.invoiceNumber} onChange={e => setFormData({ ...formData, invoiceNumber: e.target.value })} />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Observações</label>
+        <textarea
+          className="flex w-full rounded-lg border border-zinc-700/50 bg-background px-3 py-2 text-sm min-h-[60px]"
+          value={formData.notes}
+          onChange={e => setFormData({ ...formData, notes: e.target.value })}
+        />
+      </div>
+      <div className="flex justify-end gap-3 pt-2 border-t border-zinc-800/50">
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Salvar
+        </Button>
+      </div>
+    </form>
+  )
+}
+NOVAPRATA_EOF
+echo "==> src/components/features/producers/FarmPlotHarvestForms.tsx escrito"
+
 # 2) Menu lateral - garante o item Produtores (idempotente)
 python3 << 'PYPATCH'
 path = "src/app/(dashboard)/layout-client.tsx"
@@ -1034,12 +1889,16 @@ PYPATCH
 
 echo ""
 echo "==================================================================="
-echo "PRONTO. Visual premium aplicado (AuroraGlow, AnimatedCounter, icones"
-echo "coloridos, hover states) igual ao padrao do Dashboard."
+echo "PRONTO. Agora o modulo tem:"
+echo "- Editar/excluir produtor (botoes no topo da ficha)"
+echo "- Criar/editar/excluir fazenda e talhao (aba Fazendas e talhoes)"
+echo "- Lancar/editar/excluir lote de colheita (aba Colheita e lotes)"
+echo "- Filtro por status na lista"
+echo "- Exportar tudo pra Excel (botao Exportar na lista)"
 echo ""
 echo "Próximos passos:"
 echo "1) Se ainda nao rodou: SQL de prisma/manual-sql/producers_module.sql no Neon"
 echo "2) npx prisma generate"
 echo "3) npm run dev -> confere /producers"
-echo "4) git add . && git commit -m 'feat: visual premium modulo produtores' && git push"
+echo "4) git add . && git commit -m 'feat: crud completo modulo produtores' && git push"
 echo "==================================================================="
