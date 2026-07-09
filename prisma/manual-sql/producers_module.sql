@@ -1,7 +1,11 @@
+-- Módulo Produtores - safra 2026 (script único, idempotente)
+
 CREATE TABLE IF NOT EXISTS "producers" (
   "id" TEXT PRIMARY KEY,
   "name" TEXT NOT NULL,
   "document" TEXT,
+  "stateRegistration" TEXT,
+  "address" TEXT,
   "phone" TEXT,
   "email" TEXT,
   "whatsapp" TEXT,
@@ -10,6 +14,10 @@ CREATE TABLE IF NOT EXISTS "producers" (
   "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
   "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
 );
+
+-- Garante as colunas novas mesmo se a tabela já existia antes (sem IE/endereço)
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "stateRegistration" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "address" TEXT;
 
 CREATE TABLE IF NOT EXISTS "farms" (
   "id" TEXT PRIMARY KEY,
@@ -46,3 +54,9 @@ CREATE TABLE IF NOT EXISTS "harvest_lots" (
   "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
   "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
 );
+
+-- Limpeza: remove tabelas de uma tentativa antiga (nomes em português), se existirem
+DROP TABLE IF EXISTS "LoteColheita";
+DROP TABLE IF EXISTS "Talhao";
+DROP TABLE IF EXISTS "Fazenda";
+DROP TABLE IF EXISTS "Produtor";

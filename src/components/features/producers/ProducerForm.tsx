@@ -16,6 +16,8 @@ export function ProducerForm({ initialData, onSubmit, onCancel }: ProducerFormPr
   const [formData, setFormData] = React.useState({
     name: initialData?.name || "",
     document: initialData?.document || "",
+    stateRegistration: initialData?.stateRegistration || "",
+    address: initialData?.address || "",
     phone: initialData?.phone || "",
     email: initialData?.email || "",
     whatsapp: initialData?.whatsapp || "",
@@ -43,6 +45,17 @@ export function ProducerForm({ initialData, onSubmit, onCancel }: ProducerFormPr
         <div className="space-y-2">
           <label className="text-sm font-medium">CPF/CNPJ</label>
           <Input value={formData.document} onChange={e => setFormData({ ...formData, document: e.target.value })} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Inscrição Estadual</label>
+          <Input value={formData.stateRegistration} onChange={e => setFormData({ ...formData, stateRegistration: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Endereço</label>
+          <Input value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
         </div>
       </div>
 

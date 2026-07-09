@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { name, document, phone, email, whatsapp, status, notes } = body
+    const { name, document, stateRegistration, address, phone, email, whatsapp, status, notes } = body
 
     if (!name) {
       return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
@@ -41,6 +41,8 @@ export async function POST(request: Request) {
       data: {
         name,
         document: document || null,
+        stateRegistration: stateRegistration || null,
+        address: address || null,
         phone: phone || null,
         email: email || null,
         whatsapp: whatsapp || null,

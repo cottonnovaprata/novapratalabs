@@ -235,72 +235,19 @@ model NetworkSegment {
   @@map("network_segments")
 }
 
-model Produtor {
-  id          String         @id @default(cuid())
-  nome        String
-  documento   String?
-  telefone    String?
-  email       String?
-  whatsapp    String?
-  status      String         @default("ativo")
-  observacoes String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  fazendas    Fazenda[]
-  lotes       LoteColheita[]
-}
-
-model Fazenda {
-  id         String    @id @default(cuid())
-  nome       String
-  produtorId String
-  produtor   Produtor  @relation(fields: [produtorId], references: [id], onDelete: Cascade)
-  talhoes    Talhao[]
-  createdAt  DateTime  @default(now())
-}
-
-model Talhao {
-  id           String   @id @default(cuid())
-  nome         String
-  areaHa       Float
-  variedade    String
-  areaDividida Boolean  @default(false)
-  observacoes  String?
-  safra        String   @default("2026")
-  fazendaId    String
-  fazenda      Fazenda  @relation(fields: [fazendaId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-}
-
-model LoteColheita {
-  id            String    @id @default(cuid())
-  numeroBloco   String?
-  produtorId    String
-  produtor      Produtor  @relation(fields: [produtorId], references: [id], onDelete: Cascade)
-  talhao        String?
-  dataColheita  DateTime?
-  classificacao String?
-  fardos        Int       @default(0)
-  pesoTotalKg   Float     @default(0)
-  status        String    @default("colhido")
-  notaFiscal    String?
-  observacoes   String?
-  safra         String    @default("2026")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
 model Producer {
-  id           String   @id @default(cuid())
-  name         String
-  document     String?
-  phone        String?
-  email        String?
-  whatsapp     String?
-  status       String   @default("ativo")
-  notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String
+  document          String?
+  stateRegistration String?
+  address           String?
+  phone             String?
+  email             String?
+  whatsapp          String?
+  status            String   @default("ativo")
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   farms        Farm[]
   harvestLots  HarvestLot[]

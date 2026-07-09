@@ -121,10 +121,26 @@ export default function ProducerDetailPage() {
 
       {tab === "Dados gerais" && (
         <Card>
-          <CardContent className="p-5 sm:p-6 space-y-3 text-sm">
-            <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{producer.phone || "-"}</p>
-            <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" />{producer.email || "-"}</p>
-            <p className="flex items-center gap-2"><MessageCircle className="h-4 w-4 text-muted-foreground" />{producer.whatsapp || "-"}</p>
+          <CardContent className="p-5 sm:p-6 space-y-4 text-sm">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
+                <p className="mt-0.5">{producer.document || "-"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Inscrição Estadual</p>
+                <p className="mt-0.5">{producer.stateRegistration || "-"}</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Endereço</p>
+              <p className="mt-0.5">{producer.address || "-"}</p>
+            </div>
+            <div className="pt-2 border-t space-y-3">
+              <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{producer.phone || "-"}</p>
+              <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" />{producer.email || "-"}</p>
+              <p className="flex items-center gap-2"><MessageCircle className="h-4 w-4 text-muted-foreground" />{producer.whatsapp || "-"}</p>
+            </div>
             <p className="text-muted-foreground pt-2 border-t">{producer.notes || "Sem observações."}</p>
           </CardContent>
         </Card>

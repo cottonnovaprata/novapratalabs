@@ -44,13 +44,15 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, document, phone, email, whatsapp, status, notes } = body
+    const { name, document, stateRegistration, address, phone, email, whatsapp, status, notes } = body
 
     const producer = await prisma.producer.update({
       where: { id },
       data: {
         name,
         document: document || null,
+        stateRegistration: stateRegistration || null,
+        address: address || null,
         phone: phone || null,
         email: email || null,
         whatsapp: whatsapp || null,
