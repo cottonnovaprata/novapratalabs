@@ -3,7 +3,7 @@
 import React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Monitor, LayoutDashboard, Box, Users, Lock, Network, PenTool, BarChart3, Settings, ChevronLeft, Search, LogOut, User, Ticket, FileText, Building2 } from "lucide-react"
+import { Monitor, LayoutDashboard, Box, Users, Lock, Network, PenTool, BarChart3, Settings, ChevronLeft, Search, LogOut, User, Ticket, FileText, Building2, Sprout } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -23,6 +23,7 @@ const sidebarItems = [
   { icon: Ticket, label: "Chamados", href: "/tickets" },
   { icon: FileText, label: "Certificados/Licenças", href: "/documents" },
   { icon: Building2, label: "Fornecedores", href: "/suppliers" },
+  { icon: Sprout, label: "Produtores", href: "/producers" },
   { icon: BarChart3, label: "Relatórios", href: "/reports" },
 ]
 
