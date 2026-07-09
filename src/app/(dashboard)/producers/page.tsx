@@ -2,13 +2,16 @@
 
 import React from "react"
 import Link from "next/link"
-import { Search, UserPlus, Loader2, RefreshCcw, MapPin, Package } from "lucide-react"
+import { Search, UserPlus, Loader2, RefreshCcw, MapPin, LayoutGrid, Package, ArrowUpRight, Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
+import { AnimatedCounter } from "@/components/ui/animated-counter"
+import { AuroraGlow } from "@/components/aurora-glow"
+import { cn } from "@/lib/utils"
 import { useConfirm } from "@/components/confirm-dialog-provider"
 import { useToast } from "@/components/toast-provider"
 import { ProducerForm } from "@/components/features/producers/ProducerForm"
@@ -29,6 +32,8 @@ export default function ProducersPage() {
   const [producers, setProducers] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
   const [searchTerm, setSearchTerm] = React.useState("")
+  const [statusFilter, setStatusFilter] = React.useState("todos")
+  const [exporting, setExporting] = React.useState(false)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [editingProducer, setEditingProducer] = React.useState<any>(null)
   const [error, setError] = React.useState<string | null>(null)
@@ -93,23 +98,70 @@ export default function ProducersPage() {
     }
   }
 
-  const filtered = producers.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = producers
+    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(p => statusFilter === "todos" || p.status === statusFilter)
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const res = await fetch("/api/producers/export")
+      if (!res.ok) throw new Error("Falha ao exportar")
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `produtores-safra-2026-${new Date().toISOString().slice(0, 10)}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Error exporting:", error)
+      toastError("Erro ao exportar produtores")
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const totalArea = producers.reduce(
+    (acc, p) => acc + (p.farms || []).reduce((a: number, f: any) => a + (f.plots || []).reduce((x: number, t: any) => x + t.areaHa, 0), 0),
+    0
   )
+  const totalBales = producers.reduce((acc, p) => acc + (p.harvestLots || []).reduce((a: number, l: any) => a + l.bales, 0), 0)
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Produtores</h1>
-          <p className="text-muted-foreground">Safra 2026 — fazendas, talhões e colheita por produtor.</p>
+    <div className="relative space-y-8 animate-in fade-in duration-500">
+      <AuroraGlow />
+
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex-1">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
+            Produtores
+          </h1>
+          <p className="text-sm mt-2" style={{ color: "var(--text-tertiary)" }}>
+            Safra 2026 — fazendas, talhões e colheita por produtor
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchProducers} disabled={loading}>
-            <RefreshCcw className={loading ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"} />
+          <Button variant="outline" size="sm" onClick={fetchProducers} disabled={loading}>
+            <RefreshCcw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
             Sincronizar
           </Button>
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+            {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+            Exportar
+          </Button>
           <Button
+            size="sm"
             className="bg-primary shadow-lg shadow-primary/20"
             onClick={() => { setEditingProducer(null); setError(null); setIsModalOpen(true) }}
           >
@@ -119,28 +171,58 @@ export default function ProducersPage() {
         </div>
       </div>
 
-      <div className="relative flex-1 w-full">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por nome..."
-          className="pl-10 h-11"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-        />
+      <div className="grid gap-6 sm:grid-cols-3">
+        {[
+          { label: "Produtores", value: producers.length, icon: UserPlus, color: "text-blue-500", bg: "bg-blue-500/10" },
+          { label: "Área plantada", value: totalArea, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Fardos colhidos", value: totalBales, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
+        ].map((s) => (
+          <Card key={s.label}>
+            <CardContent className="p-5 sm:p-6 flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm font-semibold" style={{ color: "var(--text-tertiary)" }}>{s.label}</p>
+                <div className="text-3xl font-bold mt-2" style={{ letterSpacing: "-0.03em", color: "var(--text-primary)" }}>
+                  <AnimatedCounter value={s.value} />{s.suffix || ""}
+                </div>
+              </div>
+              <div className={cn("p-3 rounded-xl flex-shrink-0", s.bg)}>
+                <s.icon className={cn("h-5 w-5", s.color)} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {loading ? (
-        <div className="p-12 text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--text-tertiary)" }} />
+          <Input
+            placeholder="Buscar por nome..."
+            className="pl-10 h-11"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
         </div>
-      ) : filtered.length === 0 ? (
+        <select
+          className="h-11 rounded-lg border border-zinc-700/50 bg-background px-3 text-sm sm:w-48"
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+        >
+          <option value="todos">Todos os status</option>
+          <option value="ativo">Ativo</option>
+          <option value="pendente">Pendente</option>
+          <option value="inativo">Inativo</option>
+        </select>
+      </div>
+
+      {filtered.length === 0 ? (
         <Card>
-          <CardContent className="p-12 text-center text-muted-foreground">
+          <CardContent className="p-12 text-center" style={{ color: "var(--text-tertiary)" }}>
             Nenhum produtor encontrado.
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((p) => {
             const areaTotal = (p.farms || []).reduce(
               (acc: number, f: any) => acc + (f.plots || []).reduce((a: number, t: any) => a + t.areaHa, 0),
@@ -150,30 +232,35 @@ export default function ProducersPage() {
             const bales = (p.harvestLots || []).reduce((acc: number, l: any) => acc + l.bales, 0)
 
             return (
-              <Link key={p.id} href={`/producers/${p.id}`} className="group">
-                <Card className="h-full transition-transform duration-200 group-hover:-translate-y-0.5">
+              <Link key={p.id} href={`/producers/${p.id}`} className="group block">
+                <Card className="cursor-pointer hover:border-blue-200 hover:shadow-lg transition-all duration-200">
                   <CardContent className="p-5 sm:p-6">
-                    <div className="flex items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center justify-between gap-3 mb-5">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                        <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
                           {initials(p.name)}
                         </div>
-                        <p className="font-semibold leading-none truncate">{p.name}</p>
+                        <p className="font-semibold leading-tight truncate" style={{ color: "var(--text-primary)" }}>{p.name}</p>
                       </div>
+                      <ArrowUpRight className="h-4 w-4 text-primary opacity-0 transition-opacity group-hover:opacity-100 flex-shrink-0" />
+                    </div>
+
+                    <div className="flex items-center justify-between mb-4">
                       <Badge variant={statusVariant(p.status)}>{p.status}</Badge>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-center text-sm pt-3 border-t border-zinc-800/50">
+
+                    <div className="grid grid-cols-3 gap-2 text-center pt-4" style={{ borderTop: "1px solid var(--border)" }}>
                       <div>
-                        <p className="text-muted-foreground text-xs flex items-center justify-center gap-1"><MapPin className="h-3 w-3" />Área</p>
-                        <p className="font-semibold mt-0.5">{areaTotal || "-"}{areaTotal ? " ha" : ""}</p>
+                        <p className="text-xs flex items-center justify-center gap-1" style={{ color: "var(--text-tertiary)" }}><MapPin className="h-3 w-3" />Área</p>
+                        <p className="font-semibold mt-1" style={{ color: "var(--text-primary)" }}>{areaTotal || "-"}{areaTotal ? " ha" : ""}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground text-xs">Talhões</p>
-                        <p className="font-semibold mt-0.5">{totalPlots || "-"}</p>
+                        <p className="text-xs flex items-center justify-center gap-1" style={{ color: "var(--text-tertiary)" }}><LayoutGrid className="h-3 w-3" />Talhões</p>
+                        <p className="font-semibold mt-1" style={{ color: "var(--text-primary)" }}>{totalPlots || "-"}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground text-xs flex items-center justify-center gap-1"><Package className="h-3 w-3" />Fardos</p>
-                        <p className="font-semibold mt-0.5">{bales || "-"}</p>
+                        <p className="text-xs flex items-center justify-center gap-1" style={{ color: "var(--text-tertiary)" }}><Package className="h-3 w-3" />Fardos</p>
+                        <p className="font-semibold mt-1" style={{ color: "var(--text-primary)" }}>{bales || "-"}</p>
                       </div>
                     </div>
                   </CardContent>
