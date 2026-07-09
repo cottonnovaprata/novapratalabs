@@ -2,11 +2,14 @@
 
 import React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Loader2, Phone, Mail, MessageCircle, MapPin } from "lucide-react"
+import { ArrowLeft, Loader2, Phone, Mail, MessageCircle, MapPin, Building2, LayoutGrid, Package } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { AnimatedCounter } from "@/components/ui/animated-counter"
+import { AuroraGlow } from "@/components/aurora-glow"
+import { cn } from "@/lib/utils"
 
 const TABS = ["Dados gerais", "Fazendas e talhões", "Safras", "Colheita e lotes", "Documentos"] as const
 
@@ -44,15 +47,15 @@ export default function ProducerDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-12 text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     )
   }
 
   if (!producer) {
     return (
-      <div className="p-12 text-center text-muted-foreground">
+      <div className="p-12 text-center" style={{ color: "var(--text-tertiary)" }}>
         Produtor não encontrado.
       </div>
     )
@@ -66,14 +69,16 @@ export default function ProducerDetailPage() {
   const bales = (producer.harvestLots || []).reduce((acc: number, l: any) => acc + l.bales, 0)
 
   const stats = [
-    { label: "Área total", value: areaTotal ? `${areaTotal} ha` : "-" },
-    { label: "Fazendas", value: producer.farms?.length || "-" },
-    { label: "Talhões", value: totalPlots || "-" },
-    { label: "Fardos colhidos", value: bales || "-" },
+    { label: "Área total", value: areaTotal, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "Fazendas", value: producer.farms?.length || 0, icon: Building2, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { label: "Talhões", value: totalPlots, icon: LayoutGrid, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "Fardos colhidos", value: bales, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
   ]
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl">
+    <div className="relative space-y-6 animate-in fade-in duration-500 max-w-4xl">
+      <AuroraGlow />
+
       <Button variant="ghost" size="sm" onClick={() => router.push("/producers")}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         Voltar
@@ -81,38 +86,46 @@ export default function ProducerDetailPage() {
 
       <Card>
         <CardContent className="p-5 sm:p-6 flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
               {initials(producer.name)}
             </div>
             <div>
-              <p className="font-semibold text-lg leading-none">{producer.name}</p>
-              <p className="text-sm text-muted-foreground mt-1">Safra atual: 2026</p>
+              <p className="font-bold text-xl leading-tight" style={{ color: "var(--text-primary)" }}>{producer.name}</p>
+              <p className="text-sm mt-1" style={{ color: "var(--text-tertiary)" }}>Safra atual: 2026</p>
             </div>
           </div>
           <Badge variant={statusVariant(producer.status)}>{producer.status}</Badge>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {stats.map((m) => (
-          <Card key={m.label}>
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{m.label}</p>
-              <p className="text-xl font-bold mt-1">{m.value}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((s) => (
+          <Card key={s.label}>
+            <CardContent className="p-4 sm:p-5">
+              <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center mb-3", s.bg)}>
+                <s.icon className={cn("h-4 w-4", s.color)} />
+              </div>
+              <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>{s.label}</p>
+              <div className="text-2xl font-bold mt-1" style={{ letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
+                <AnimatedCounter value={s.value} />{s.suffix || ""}
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="flex gap-0.5 border-b overflow-x-auto">
+      <div className="flex gap-1 overflow-x-auto" style={{ borderBottom: "1px solid var(--border)" }}>
         {TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-3 py-2 text-sm whitespace-nowrap transition-colors duration-200 ${
-              tab === t ? "font-semibold text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className="px-3 py-2.5 text-sm whitespace-nowrap transition-colors duration-200 font-medium"
+            style={
+              tab === t
+                ? { color: "var(--primary)", borderBottom: "2px solid var(--primary)" }
+                : { color: "var(--text-tertiary)" }
+            }
           >
             {t}
           </button>
@@ -121,27 +134,29 @@ export default function ProducerDetailPage() {
 
       {tab === "Dados gerais" && (
         <Card>
-          <CardContent className="p-5 sm:p-6 space-y-4 text-sm">
-            <div className="grid grid-cols-2 gap-4">
+          <CardContent className="p-5 sm:p-6 space-y-5 text-sm">
+            <div className="grid grid-cols-2 gap-5">
               <div>
-                <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
-                <p className="mt-0.5">{producer.document || "-"}</p>
+                <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>CPF/CNPJ</p>
+                <p className="mt-1" style={{ color: "var(--text-primary)" }}>{producer.document || "-"}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Inscrição Estadual</p>
-                <p className="mt-0.5">{producer.stateRegistration || "-"}</p>
+                <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Inscrição Estadual</p>
+                <p className="mt-1" style={{ color: "var(--text-primary)" }}>{producer.stateRegistration || "-"}</p>
               </div>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Endereço</p>
-              <p className="mt-0.5">{producer.address || "-"}</p>
+              <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Endereço</p>
+              <p className="mt-1" style={{ color: "var(--text-primary)" }}>{producer.address || "-"}</p>
             </div>
-            <div className="pt-2 border-t space-y-3">
-              <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{producer.phone || "-"}</p>
-              <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" />{producer.email || "-"}</p>
-              <p className="flex items-center gap-2"><MessageCircle className="h-4 w-4 text-muted-foreground" />{producer.whatsapp || "-"}</p>
+            <div className="pt-4 space-y-3" style={{ borderTop: "1px solid var(--border)" }}>
+              <p className="flex items-center gap-2"><Phone className="h-4 w-4" style={{ color: "var(--text-tertiary)" }} />{producer.phone || "-"}</p>
+              <p className="flex items-center gap-2"><Mail className="h-4 w-4" style={{ color: "var(--text-tertiary)" }} />{producer.email || "-"}</p>
+              <p className="flex items-center gap-2"><MessageCircle className="h-4 w-4" style={{ color: "var(--text-tertiary)" }} />{producer.whatsapp || "-"}</p>
             </div>
-            <p className="text-muted-foreground pt-2 border-t">{producer.notes || "Sem observações."}</p>
+            <p className="pt-4" style={{ borderTop: "1px solid var(--border)", color: "var(--text-tertiary)" }}>
+              {producer.notes || "Sem observações."}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -149,28 +164,30 @@ export default function ProducerDetailPage() {
       {tab === "Fazendas e talhões" && (
         <div className="space-y-4">
           {(!producer.farms || producer.farms.length === 0) && (
-            <Card><CardContent className="p-6 text-sm text-muted-foreground">Nenhuma fazenda/talhão cadastrado ainda.</CardContent></Card>
+            <Card><CardContent className="p-6 text-sm" style={{ color: "var(--text-tertiary)" }}>Nenhuma fazenda/talhão cadastrado ainda.</CardContent></Card>
           )}
           {(producer.farms || []).map((f: any) => (
             <Card key={f.id}>
               <CardContent className="p-5 sm:p-6">
-                <p className="font-semibold text-sm mb-3 flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{f.name}</p>
+                <p className="font-semibold text-sm mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                  <MapPin className="h-4 w-4 text-emerald-500" />{f.name}
+                </p>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-muted-foreground border-b">
-                      <th className="pb-2 font-medium">Talhão</th>
-                      <th className="pb-2 font-medium">Área</th>
-                      <th className="pb-2 font-medium">Variedade</th>
+                    <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                      <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Talhão</th>
+                      <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Área</th>
+                      <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Variedade</th>
                     </tr>
                   </thead>
                   <tbody>
                     {f.plots.map((t: any) => (
-                      <tr key={t.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                        <td className="py-2">{t.name}</td>
-                        <td className="py-2">{t.areaHa} ha</td>
-                        <td className="py-2">
+                      <tr key={t.id} className="transition-colors duration-200 hover:bg-zinc-500/5" style={{ borderBottom: "1px solid var(--border)" }}>
+                        <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{t.name}</td>
+                        <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{t.areaHa} ha</td>
+                        <td className="py-2.5" style={{ color: "var(--text-primary)" }}>
                           {t.variety}
-                          {t.splitArea && <span className="ml-2 text-xs text-muted-foreground">(área dividida)</span>}
+                          {t.splitArea && <span className="ml-2 text-xs" style={{ color: "var(--text-tertiary)" }}>(área dividida)</span>}
                         </td>
                       </tr>
                     ))}
@@ -183,33 +200,33 @@ export default function ProducerDetailPage() {
       )}
 
       {tab === "Safras" && (
-        <Card><CardContent className="p-5 sm:p-6 text-sm text-muted-foreground">Histórico multi-safra entra aqui quando tivermos mais de um ano cadastrado.</CardContent></Card>
+        <Card><CardContent className="p-5 sm:p-6 text-sm" style={{ color: "var(--text-tertiary)" }}>Histórico multi-safra entra aqui quando tivermos mais de um ano cadastrado.</CardContent></Card>
       )}
 
       {tab === "Colheita e lotes" && (
         <Card>
           <CardContent className="p-5 sm:p-6">
             {(!producer.harvestLots || producer.harvestLots.length === 0) ? (
-              <p className="text-sm text-muted-foreground">Nenhum lote lançado ainda.</p>
+              <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Nenhum lote lançado ainda.</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-muted-foreground border-b">
-                    <th className="pb-2 font-medium">Bloco</th>
-                    <th className="pb-2 font-medium">Talhão</th>
-                    <th className="pb-2 font-medium">Fardos</th>
-                    <th className="pb-2 font-medium">Peso (kg)</th>
-                    <th className="pb-2 font-medium">Status</th>
+                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                    <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Bloco</th>
+                    <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Talhão</th>
+                    <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Fardos</th>
+                    <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Peso (kg)</th>
+                    <th className="pb-2.5 text-left text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {producer.harvestLots.map((l: any) => (
-                    <tr key={l.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                      <td className="py-2">{l.blockNumber || "-"}</td>
-                      <td className="py-2">{l.plot || "-"}</td>
-                      <td className="py-2">{l.bales}</td>
-                      <td className="py-2">{l.totalWeightKg}</td>
-                      <td className="py-2"><Badge variant="ghost">{l.status}</Badge></td>
+                    <tr key={l.id} className="transition-colors duration-200 hover:bg-zinc-500/5" style={{ borderBottom: "1px solid var(--border)" }}>
+                      <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.blockNumber || "-"}</td>
+                      <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.plot || "-"}</td>
+                      <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.bales}</td>
+                      <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.totalWeightKg}</td>
+                      <td className="py-2.5"><Badge variant="ghost">{l.status}</Badge></td>
                     </tr>
                   ))}
                 </tbody>
@@ -220,7 +237,7 @@ export default function ProducerDetailPage() {
       )}
 
       {tab === "Documentos" && (
-        <Card><CardContent className="p-5 sm:p-6 text-sm text-muted-foreground">Upload de documentos entra aqui (contratos, CAR, notas).</CardContent></Card>
+        <Card><CardContent className="p-5 sm:p-6 text-sm" style={{ color: "var(--text-tertiary)" }}>Upload de documentos entra aqui (contratos, CAR, notas).</CardContent></Card>
       )}
     </div>
   )
