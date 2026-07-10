@@ -65,7 +65,8 @@ export default function DocumentsPage() {
         success(editingDoc ? "Registro atualizado" : "Registro cadastrado")
         fetchData()
       } else {
-        toastError("Erro ao salvar registro")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar registro")
       }
     } catch (error) {
       console.error("Error saving document:", error)
@@ -82,7 +83,8 @@ export default function DocumentsPage() {
         success("Registro excluído")
         fetchData()
       } else {
-        toastError("Erro ao excluir registro")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao excluir registro")
       }
     } catch (error) {
       console.error("Error deleting document:", error)
@@ -177,10 +179,22 @@ export default function DocumentsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => { setEditingDoc(d); setIsModalOpen(true) }}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        aria-label="Editar certificado/licença"
+                        onClick={() => { setEditingDoc(d); setIsModalOpen(true) }}
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(d.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        aria-label="Excluir certificado/licença"
+                        onClick={() => handleDelete(d.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -204,4 +218,3 @@ export default function DocumentsPage() {
     </div>
   )
 }
-
