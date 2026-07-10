@@ -18,6 +18,7 @@ export async function GET(
       include: {
         farms: { include: { plots: true } },
         harvestLots: { orderBy: { createdAt: "desc" } },
+        documents: { orderBy: { uploadedAt: "desc" }, select: { id: true, fileName: true, mimeType: true, fileSize: true, uploadedAt: true } },
       },
     })
 

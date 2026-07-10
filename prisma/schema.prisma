@@ -251,6 +251,7 @@ model Producer {
 
   farms        Farm[]
   harvestLots  HarvestLot[]
+  documents    ProducerDocument[]
 
   @@map("producers")
 }
@@ -299,5 +300,18 @@ model HarvestLot {
   updatedAt     DateTime  @updatedAt
 
   @@map("harvest_lots")
+}
+
+model ProducerDocument {
+  id         String   @id @default(cuid())
+  producerId String
+  producer   Producer @relation(fields: [producerId], references: [id], onDelete: Cascade)
+  fileName   String
+  mimeType   String
+  fileSize   Int
+  fileData   String   @db.Text
+  uploadedAt DateTime @default(now())
+
+  @@map("producer_documents")
 }
 

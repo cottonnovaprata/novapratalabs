@@ -37,13 +37,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
     }
 
-    const duplicate = await prisma.producer.findFirst({
-      where: { name: { equals: name.trim(), mode: "insensitive" } },
-    })
-    if (duplicate) {
-      return NextResponse.json({ error: `Já existe um produtor cadastrado como "${duplicate.name}"` }, { status: 409 })
-    }
-
     const producer = await prisma.producer.create({
       data: {
         name,

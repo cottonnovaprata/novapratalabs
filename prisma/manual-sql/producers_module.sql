@@ -55,6 +55,16 @@ CREATE TABLE IF NOT EXISTS "harvest_lots" (
   "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS "producer_documents" (
+  "id" TEXT PRIMARY KEY,
+  "producerId" TEXT NOT NULL REFERENCES "producers"("id") ON DELETE CASCADE,
+  "fileName" TEXT NOT NULL,
+  "mimeType" TEXT NOT NULL,
+  "fileSize" INTEGER NOT NULL,
+  "fileData" TEXT NOT NULL,
+  "uploadedAt" TIMESTAMP NOT NULL DEFAULT now()
+);
+
 -- Limpeza: remove tabelas de uma tentativa antiga (nomes em português), se existirem
 DROP TABLE IF EXISTS "LoteColheita";
 DROP TABLE IF EXISTS "Talhao";
