@@ -173,16 +173,16 @@ export default function ProducersPage() {
 
       <div className="grid gap-6 sm:grid-cols-3">
         {[
-          { label: "Produtores", value: producers.length, icon: UserPlus, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: "Área plantada", value: totalArea, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          { label: "Fardos colhidos", value: totalBales, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
+          { label: "Produtores", value: producers.length, decimals: 0, icon: UserPlus, color: "text-blue-500", bg: "bg-blue-500/10" },
+          { label: "Área plantada", value: totalArea, decimals: 1, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Fardos colhidos", value: totalBales, decimals: 0, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
         ].map((s) => (
           <Card key={s.label}>
             <CardContent className="p-5 sm:p-6 flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm font-semibold" style={{ color: "var(--text-tertiary)" }}>{s.label}</p>
                 <div className="text-3xl font-bold mt-2" style={{ letterSpacing: "-0.03em", color: "var(--text-primary)" }}>
-                  <AnimatedCounter value={s.value} />{s.suffix || ""}
+                  <AnimatedCounter value={s.value} decimals={s.decimals} />{s.suffix || ""}
                 </div>
               </div>
               <div className={cn("p-3 rounded-xl flex-shrink-0", s.bg)}>
