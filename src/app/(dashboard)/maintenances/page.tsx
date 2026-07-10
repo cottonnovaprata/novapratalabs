@@ -89,9 +89,9 @@ export default function MaintenancePage() {
   async function handleDelete(id: string) {
     const confirmed = await confirmDialog({
       title: "Excluir Manutenção",
-      description: "Deseja realmente excluir este registro de manutenção? Esta ação não pode ser desfeita.",
+      message: "Deseja realmente excluir este registro de manutenção? Esta ação não pode ser desfeita.",
       confirmLabel: "Excluir",
-      cancelLabel: "Cancelar",
+      destructive: true,
     })
     if (!confirmed) return
 
