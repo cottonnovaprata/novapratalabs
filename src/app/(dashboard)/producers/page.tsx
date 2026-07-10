@@ -12,7 +12,6 @@ import { Modal } from "@/components/ui/modal"
 import { AnimatedCounter } from "@/components/ui/animated-counter"
 import { AuroraGlow } from "@/components/aurora-glow"
 import { cn } from "@/lib/utils"
-import { useConfirm } from "@/components/confirm-dialog-provider"
 import { useToast } from "@/components/toast-provider"
 import { ProducerForm } from "@/components/features/producers/ProducerForm"
 
@@ -27,7 +26,6 @@ function statusVariant(status: string) {
 }
 
 export default function ProducersPage() {
-  const confirmDialog = useConfirm()
   const { success, error: toastError } = useToast()
   const [producers, setProducers] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -75,26 +73,6 @@ export default function ProducersPage() {
     } catch (err) {
       console.error("Error saving producer:", err)
       setError("Erro ao salvar produtor")
-    }
-  }
-
-  async function handleDelete(id: string, e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    const ok = await confirmDialog({ title: "Excluir produtor", message: "Deseja realmente excluir este produtor?", destructive: true })
-    if (!ok) return
-    try {
-      const res = await fetch(`/api/producers/${id}`, { method: "DELETE" })
-      const result = await res.json()
-      if (res.ok) {
-        success("Produtor excluído")
-        fetchProducers()
-      } else {
-        toastError(result.error || "Erro ao excluir produtor")
-      }
-    } catch (error) {
-      console.error("Error deleting producer:", error)
-      toastError("Erro ao excluir produtor")
     }
   }
 
@@ -174,7 +152,7 @@ export default function ProducersPage() {
       <div className="grid gap-6 sm:grid-cols-3">
         {[
           { label: "Produtores", value: producers.length, icon: UserPlus, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: "Área plantada", value: totalArea, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Área plantada", value: totalArea, decimals: 1, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
           { label: "Fardos colhidos", value: totalBales, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
         ].map((s) => (
           <Card key={s.label}>
@@ -182,7 +160,7 @@ export default function ProducersPage() {
               <div>
                 <p className="text-xs sm:text-sm font-semibold" style={{ color: "var(--text-tertiary)" }}>{s.label}</p>
                 <div className="text-3xl font-bold mt-2" style={{ letterSpacing: "-0.03em", color: "var(--text-primary)" }}>
-                  <AnimatedCounter value={s.value} />{s.suffix || ""}
+                  <AnimatedCounter value={s.value} decimals={s.decimals || 0} />{s.suffix || ""}
                 </div>
               </div>
               <div className={cn("p-3 rounded-xl flex-shrink-0", s.bg)}>

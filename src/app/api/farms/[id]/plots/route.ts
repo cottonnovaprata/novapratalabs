@@ -14,10 +14,21 @@ export async function POST(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, areaHa, variety, splitArea, notes, season } = body
+    const { name, areaHa, variety, splitArea, notes, season, producerId } = body
 
     if (!name || !areaHa || !variety) {
       return NextResponse.json({ error: "Talhão, área e variedade são obrigatórios" }, { status: 400 })
+    }
+    if (Number(areaHa) <= 0) {
+      return NextResponse.json({ error: "Área deve ser maior que zero" }, { status: 400 })
+    }
+
+    const farm = await prisma.farm.findUnique({ where: { id } })
+    if (!farm) {
+      return NextResponse.json({ error: "Fazenda não encontrada" }, { status: 404 })
+    }
+    if (producerId && farm.producerId !== producerId) {
+      return NextResponse.json({ error: "Fazenda não pertence a este produtor" }, { status: 403 })
     }
 
     const plot = await prisma.plot.create({

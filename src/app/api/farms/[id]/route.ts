@@ -14,7 +14,15 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name } = body
+    const { name, producerId } = body
+
+    const existing = await prisma.farm.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: "Fazenda não encontrada" }, { status: 404 })
+    }
+    if (producerId && existing.producerId !== producerId) {
+      return NextResponse.json({ error: "Fazenda não pertence a este produtor" }, { status: 403 })
+    }
 
     const farm = await prisma.farm.update({
       where: { id },
@@ -39,6 +47,17 @@ export async function DELETE(
 
   try {
     const { id } = await params
+    const { searchParams } = new URL(request.url)
+    const producerId = searchParams.get("producerId")
+
+    const existing = await prisma.farm.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: "Fazenda não encontrada" }, { status: 404 })
+    }
+    if (producerId && existing.producerId !== producerId) {
+      return NextResponse.json({ error: "Fazenda não pertence a este produtor" }, { status: 403 })
+    }
+
     await prisma.farm.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {

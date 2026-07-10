@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
-echo "==> Módulo Produtores COMPLETO - CRUD de fazenda/talhão/lote + export Excel"
+echo "==> Módulo Produtores - auditoria v2 (safra 2026)"
 
-# 0) Limpeza de tentativas antigas / arquivos soltos de scripts anteriores
+# 0) Limpeza de tentativas antigas / scripts soltos na raiz
 rm -rf app/produtores components/produtores 'src/app/(dashboard)/produtores' src/components/features/produtores 2>/dev/null || true
 rm -f prisma/manual-sql/2026_produtores.sql prisma/manual-sql/2026_producers.sql prisma/manual-sql/2026_producers_v2_campos.sql 2>/dev/null || true
 rm -f prisma/seed-produtores.ts 2>/dev/null || true
-rm -f modulo_produtores_completo*.sh 2>/dev/null || true
+rm -f modulo_produtores_completo*.sh produtores_crud_completo*.sh produtores_auditado_final.sh 2>/dev/null || true
 
 # 1) Schema Prisma - idempotente
 python3 << 'PYPATCH'
@@ -268,6 +268,13 @@ export async function POST(request: Request) {
 
     if (!name) {
       return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
+    }
+
+    const duplicate = await prisma.producer.findFirst({
+      where: { name: { equals: name.trim(), mode: "insensitive" } },
+    })
+    if (duplicate) {
+      return NextResponse.json({ error: `Já existe um produtor cadastrado como "${duplicate.name}"` }, { status: 409 })
     }
 
     const producer = await prisma.producer.create({
@@ -575,7 +582,15 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name } = body
+    const { name, producerId } = body
+
+    const existing = await prisma.farm.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: "Fazenda não encontrada" }, { status: 404 })
+    }
+    if (producerId && existing.producerId !== producerId) {
+      return NextResponse.json({ error: "Fazenda não pertence a este produtor" }, { status: 403 })
+    }
 
     const farm = await prisma.farm.update({
       where: { id },
@@ -600,6 +615,17 @@ export async function DELETE(
 
   try {
     const { id } = await params
+    const { searchParams } = new URL(request.url)
+    const producerId = searchParams.get("producerId")
+
+    const existing = await prisma.farm.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: "Fazenda não encontrada" }, { status: 404 })
+    }
+    if (producerId && existing.producerId !== producerId) {
+      return NextResponse.json({ error: "Fazenda não pertence a este produtor" }, { status: 403 })
+    }
+
     await prisma.farm.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -628,10 +654,21 @@ export async function POST(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, areaHa, variety, splitArea, notes, season } = body
+    const { name, areaHa, variety, splitArea, notes, season, producerId } = body
 
     if (!name || !areaHa || !variety) {
       return NextResponse.json({ error: "Talhão, área e variedade são obrigatórios" }, { status: 400 })
+    }
+    if (Number(areaHa) <= 0) {
+      return NextResponse.json({ error: "Área deve ser maior que zero" }, { status: 400 })
+    }
+
+    const farm = await prisma.farm.findUnique({ where: { id } })
+    if (!farm) {
+      return NextResponse.json({ error: "Fazenda não encontrada" }, { status: 404 })
+    }
+    if (producerId && farm.producerId !== producerId) {
+      return NextResponse.json({ error: "Fazenda não pertence a este produtor" }, { status: 403 })
     }
 
     const plot = await prisma.plot.create({
@@ -673,7 +710,15 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, areaHa, variety, splitArea, notes, season } = body
+    const { name, areaHa, variety, splitArea, notes, season, producerId } = body
+
+    const existing = await prisma.plot.findUnique({ where: { id }, include: { farm: true } })
+    if (!existing) {
+      return NextResponse.json({ error: "Talhão não encontrado" }, { status: 404 })
+    }
+    if (producerId && existing.farm.producerId !== producerId) {
+      return NextResponse.json({ error: "Talhão não pertence a este produtor" }, { status: 403 })
+    }
 
     const plot = await prisma.plot.update({
       where: { id },
@@ -705,6 +750,17 @@ export async function DELETE(
 
   try {
     const { id } = await params
+    const { searchParams } = new URL(request.url)
+    const producerId = searchParams.get("producerId")
+
+    const existing = await prisma.plot.findUnique({ where: { id }, include: { farm: true } })
+    if (!existing) {
+      return NextResponse.json({ error: "Talhão não encontrado" }, { status: 404 })
+    }
+    if (producerId && existing.farm.producerId !== producerId) {
+      return NextResponse.json({ error: "Talhão não pertence a este produtor" }, { status: 403 })
+    }
+
     await prisma.plot.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -733,7 +789,15 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { blockNumber, plot, harvestDate, classification, bales, totalWeightKg, status, invoiceNumber, notes } = body
+    const { blockNumber, plot, harvestDate, classification, bales, totalWeightKg, status, invoiceNumber, notes, producerId } = body
+
+    const existing = await prisma.harvestLot.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: "Lote não encontrado" }, { status: 404 })
+    }
+    if (producerId && existing.producerId !== producerId) {
+      return NextResponse.json({ error: "Lote não pertence a este produtor" }, { status: 403 })
+    }
 
     const lot = await prisma.harvestLot.update({
       where: { id },
@@ -768,6 +832,17 @@ export async function DELETE(
 
   try {
     const { id } = await params
+    const { searchParams } = new URL(request.url)
+    const producerId = searchParams.get("producerId")
+
+    const existing = await prisma.harvestLot.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: "Lote não encontrado" }, { status: 404 })
+    }
+    if (producerId && existing.producerId !== producerId) {
+      return NextResponse.json({ error: "Lote não pertence a este produtor" }, { status: 403 })
+    }
+
     await prisma.harvestLot.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -794,7 +869,6 @@ import { Modal } from "@/components/ui/modal"
 import { AnimatedCounter } from "@/components/ui/animated-counter"
 import { AuroraGlow } from "@/components/aurora-glow"
 import { cn } from "@/lib/utils"
-import { useConfirm } from "@/components/confirm-dialog-provider"
 import { useToast } from "@/components/toast-provider"
 import { ProducerForm } from "@/components/features/producers/ProducerForm"
 
@@ -809,7 +883,6 @@ function statusVariant(status: string) {
 }
 
 export default function ProducersPage() {
-  const confirmDialog = useConfirm()
   const { success, error: toastError } = useToast()
   const [producers, setProducers] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -857,26 +930,6 @@ export default function ProducersPage() {
     } catch (err) {
       console.error("Error saving producer:", err)
       setError("Erro ao salvar produtor")
-    }
-  }
-
-  async function handleDelete(id: string, e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    const ok = await confirmDialog({ title: "Excluir produtor", message: "Deseja realmente excluir este produtor?", destructive: true })
-    if (!ok) return
-    try {
-      const res = await fetch(`/api/producers/${id}`, { method: "DELETE" })
-      const result = await res.json()
-      if (res.ok) {
-        success("Produtor excluído")
-        fetchProducers()
-      } else {
-        toastError(result.error || "Erro ao excluir produtor")
-      }
-    } catch (error) {
-      console.error("Error deleting producer:", error)
-      toastError("Erro ao excluir produtor")
     }
   }
 
@@ -956,7 +1009,7 @@ export default function ProducersPage() {
       <div className="grid gap-6 sm:grid-cols-3">
         {[
           { label: "Produtores", value: producers.length, icon: UserPlus, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: "Área plantada", value: totalArea, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Área plantada", value: totalArea, decimals: 1, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
           { label: "Fardos colhidos", value: totalBales, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
         ].map((s) => (
           <Card key={s.label}>
@@ -964,7 +1017,7 @@ export default function ProducersPage() {
               <div>
                 <p className="text-xs sm:text-sm font-semibold" style={{ color: "var(--text-tertiary)" }}>{s.label}</p>
                 <div className="text-3xl font-bold mt-2" style={{ letterSpacing: "-0.03em", color: "var(--text-primary)" }}>
-                  <AnimatedCounter value={s.value} />{s.suffix || ""}
+                  <AnimatedCounter value={s.value} decimals={s.decimals || 0} />{s.suffix || ""}
                 </div>
               </div>
               <div className={cn("p-3 rounded-xl flex-shrink-0", s.bg)}>
@@ -1110,6 +1163,13 @@ function statusVariant(status: string) {
   return "outline"
 }
 
+function lotStatusVariant(status: string) {
+  if (status === "faturado") return "success"
+  if (status === "beneficiado") return "default"
+  if (status === "cancelado") return "destructive"
+  return "ghost"
+}
+
 export default function ProducerDetailPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
@@ -1179,13 +1239,15 @@ export default function ProducerDetailPage() {
     try {
       const url = farmModal.editing ? `/api/farms/${farmModal.editing.id}` : `/api/producers/${params.id}/farms`
       const method = farmModal.editing ? "PUT" : "POST"
-      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
+      const payload = farmModal.editing ? { ...data, producerId: params.id } : data
+      const res = await fetch(url, { method, body: JSON.stringify(payload), headers: { "Content-Type": "application/json" } })
       if (res.ok) {
         success(farmModal.editing ? "Fazenda atualizada" : "Fazenda criada")
         setFarmModal({ open: false, editing: null })
         fetchProducer()
       } else {
-        toastError("Erro ao salvar fazenda")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar fazenda")
       }
     } catch (error) {
       console.error(error)
@@ -1197,7 +1259,7 @@ export default function ProducerDetailPage() {
     const ok = await confirmDialog({ title: "Excluir fazenda", message: `Excluir "${farm.name}" e todos os talhões dela?`, destructive: true })
     if (!ok) return
     try {
-      const res = await fetch(`/api/farms/${farm.id}`, { method: "DELETE" })
+      const res = await fetch(`/api/farms/${farm.id}?producerId=${params.id}`, { method: "DELETE" })
       if (res.ok) { success("Fazenda excluída"); fetchProducer() } else { toastError("Erro ao excluir fazenda") }
     } catch (error) {
       console.error(error)
@@ -1209,13 +1271,15 @@ export default function ProducerDetailPage() {
     try {
       const url = plotModal.editing ? `/api/plots/${plotModal.editing.id}` : `/api/farms/${plotModal.farmId}/plots`
       const method = plotModal.editing ? "PUT" : "POST"
-      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
+      const payload = { ...data, producerId: params.id }
+      const res = await fetch(url, { method, body: JSON.stringify(payload), headers: { "Content-Type": "application/json" } })
       if (res.ok) {
         success(plotModal.editing ? "Talhão atualizado" : "Talhão criado")
         setPlotModal({ open: false, editing: null, farmId: null })
         fetchProducer()
       } else {
-        toastError("Erro ao salvar talhão")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar talhão")
       }
     } catch (error) {
       console.error(error)
@@ -1227,7 +1291,7 @@ export default function ProducerDetailPage() {
     const ok = await confirmDialog({ title: "Excluir talhão", message: `Excluir o talhão "${plot.name}"?`, destructive: true })
     if (!ok) return
     try {
-      const res = await fetch(`/api/plots/${plot.id}`, { method: "DELETE" })
+      const res = await fetch(`/api/plots/${plot.id}?producerId=${params.id}`, { method: "DELETE" })
       if (res.ok) { success("Talhão excluído"); fetchProducer() } else { toastError("Erro ao excluir talhão") }
     } catch (error) {
       console.error(error)
@@ -1239,13 +1303,15 @@ export default function ProducerDetailPage() {
     try {
       const url = lotModal.editing ? `/api/harvest-lots/${lotModal.editing.id}` : `/api/producers/${params.id}/harvest-lots`
       const method = lotModal.editing ? "PUT" : "POST"
-      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
+      const payload = lotModal.editing ? { ...data, producerId: params.id } : data
+      const res = await fetch(url, { method, body: JSON.stringify(payload), headers: { "Content-Type": "application/json" } })
       if (res.ok) {
         success(lotModal.editing ? "Lote atualizado" : "Lote lançado")
         setLotModal({ open: false, editing: null })
         fetchProducer()
       } else {
-        toastError("Erro ao salvar lote")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar lote")
       }
     } catch (error) {
       console.error(error)
@@ -1257,7 +1323,7 @@ export default function ProducerDetailPage() {
     const ok = await confirmDialog({ title: "Excluir lote", message: `Excluir o lote "${lot.blockNumber || lot.id}"?`, destructive: true })
     if (!ok) return
     try {
-      const res = await fetch(`/api/harvest-lots/${lot.id}`, { method: "DELETE" })
+      const res = await fetch(`/api/harvest-lots/${lot.id}?producerId=${params.id}`, { method: "DELETE" })
       if (res.ok) { success("Lote excluído"); fetchProducer() } else { toastError("Erro ao excluir lote") }
     } catch (error) {
       console.error(error)
@@ -1289,7 +1355,7 @@ export default function ProducerDetailPage() {
   const bales = (producer.harvestLots || []).reduce((acc: number, l: any) => acc + l.bales, 0)
 
   const stats = [
-    { label: "Área total", value: areaTotal, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "Área total", value: areaTotal, decimals: 1, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
     { label: "Fazendas", value: producer.farms?.length || 0, icon: Building2, color: "text-blue-500", bg: "bg-blue-500/10" },
     { label: "Talhões", value: totalPlots, icon: LayoutGrid, color: "text-amber-500", bg: "bg-amber-500/10" },
     { label: "Fardos colhidos", value: bales, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
@@ -1309,7 +1375,7 @@ export default function ProducerDetailPage() {
             <Edit className="mr-2 h-4 w-4" />
             Editar
           </Button>
-          <Button onClick={handleDeleteProducer} variant="outline" size="sm" style={{ color: "var(--status-error)" }}>
+          <Button onClick={handleDeleteProducer} variant="outline" size="sm" style={{ color: "var(--status-error)" }} aria-label="Excluir produtor">
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -1339,7 +1405,7 @@ export default function ProducerDetailPage() {
               </div>
               <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>{s.label}</p>
               <div className="text-2xl font-bold mt-1" style={{ letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
-                <AnimatedCounter value={s.value} />{s.suffix || ""}
+                <AnimatedCounter value={s.value} decimals={s.decimals || 0} />{s.suffix || ""}
               </div>
             </CardContent>
           </Card>
@@ -1417,10 +1483,10 @@ export default function ProducerDetailPage() {
                       <Plus className="mr-1 h-3.5 w-3.5" />
                       Talhão
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFarmModal({ open: true, editing: f })}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFarmModal({ open: true, editing: f })} aria-label={`Editar fazenda ${f.name}`}>
                       <Edit className="h-3.5 w-3.5" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteFarm(f)}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteFarm(f)} aria-label={`Excluir fazenda ${f.name}`}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -1445,10 +1511,10 @@ export default function ProducerDetailPage() {
                         </td>
                         <td className="py-2.5 text-right">
                           <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setPlotModal({ open: true, editing: t, farmId: f.id })}>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setPlotModal({ open: true, editing: t, farmId: f.id })} aria-label={`Editar talhão ${t.name}`}>
                               <Edit className="h-3.5 w-3.5" />
                             </Button>
-                            <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeletePlot(t)}>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeletePlot(t)} aria-label={`Excluir talhão ${t.name}`}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -1497,13 +1563,13 @@ export default function ProducerDetailPage() {
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.plot || "-"}</td>
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.bales}</td>
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.totalWeightKg}</td>
-                      <td className="py-2.5"><Badge variant="ghost">{l.status}</Badge></td>
+                      <td className="py-2.5"><Badge variant={lotStatusVariant(l.status)}>{l.status}</Badge></td>
                       <td className="py-2.5 text-right">
                         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setLotModal({ open: true, editing: l })}>
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setLotModal({ open: true, editing: l })} aria-label={`Editar lote ${l.blockNumber || l.id}`}>
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteLot(l)}>
+                          <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteLot(l)} aria-label={`Excluir lote ${l.blockNumber || l.id}`}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -1726,7 +1792,7 @@ export function PlotForm({ initialData, onSubmit, onCancel }: { initialData?: an
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Área (ha)</label>
-          <Input required type="number" step="0.01" value={formData.areaHa} onChange={e => setFormData({ ...formData, areaHa: e.target.value })} />
+          <Input required type="number" step="0.01" min="0.01" value={formData.areaHa} onChange={e => setFormData({ ...formData, areaHa: e.target.value })} />
         </div>
       </div>
       <div className="space-y-2">
@@ -1813,11 +1879,11 @@ export function HarvestLotForm({ initialData, onSubmit, onCancel }: { initialDat
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Fardos</label>
-          <Input required type="number" value={formData.bales} onChange={e => setFormData({ ...formData, bales: e.target.value })} />
+          <Input required type="number" min="0" value={formData.bales} onChange={e => setFormData({ ...formData, bales: e.target.value })} />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Peso total (kg)</label>
-          <Input required type="number" step="0.01" value={formData.totalWeightKg} onChange={e => setFormData({ ...formData, totalWeightKg: e.target.value })} />
+          <Input required type="number" step="0.01" min="0" value={formData.totalWeightKg} onChange={e => setFormData({ ...formData, totalWeightKg: e.target.value })} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -1860,6 +1926,33 @@ export function HarvestLotForm({ initialData, onSubmit, onCancel }: { initialDat
 NOVAPRATA_EOF
 echo "==> src/components/features/producers/FarmPlotHarvestForms.tsx escrito"
 
+mkdir -p "src/components/ui"
+cat > "src/components/ui/animated-counter.tsx" << 'NOVAPRATA_EOF'
+"use client"
+
+import * as React from "react"
+import { animate } from "framer-motion"
+
+export function AnimatedCounter({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const [display, setDisplay] = React.useState(0)
+  const prevValue = React.useRef(0)
+
+  React.useEffect(() => {
+    const factor = 10 ** decimals
+    const controls = animate(prevValue.current, value, {
+      duration: 0.8,
+      ease: "easeOut",
+      onUpdate: (v) => setDisplay(Math.round(v * factor) / factor),
+    })
+    prevValue.current = value
+    return () => controls.stop()
+  }, [value, decimals])
+
+  return <>{decimals > 0 ? display.toFixed(decimals) : display}</>
+}
+NOVAPRATA_EOF
+echo "==> src/components/ui/animated-counter.tsx escrito"
+
 # 2) Menu lateral - garante o item Produtores (idempotente)
 python3 << 'PYPATCH'
 path = "src/app/(dashboard)/layout-client.tsx"
@@ -1889,16 +1982,22 @@ PYPATCH
 
 echo ""
 echo "==================================================================="
-echo "PRONTO. Agora o modulo tem:"
-echo "- Editar/excluir produtor (botoes no topo da ficha)"
-echo "- Criar/editar/excluir fazenda e talhao (aba Fazendas e talhoes)"
-echo "- Lancar/editar/excluir lote de colheita (aba Colheita e lotes)"
-echo "- Filtro por status na lista"
-echo "- Exportar tudo pra Excel (botao Exportar na lista)"
+echo "PRONTO. Auditoria v2 aplicada:"
+echo "1) AnimatedCounter nao arredonda mais area em hectares (bug de dado"
+echo "   silencioso corrigido - agora mostra 1 casa decimal)"
+echo "2) Criar talhao agora tambem valida que a fazenda pertence ao"
+echo "   produtor certo (antes so PUT/DELETE tinham essa trava)"
+echo "3) Area/fardos/peso nao aceitam mais valor negativo ou zero"
+echo "4) Nome de produtor duplicado agora bloqueia com aviso claro"
+echo "5) Mensagens de erro reais da API aparecem no toast (nao mais"
+echo "   so \"Erro ao salvar\" generico)"
+echo ""
+echo "(as 4 correcoes da auditoria anterior - codigo morto, cor do badge,"
+echo "aria-label, trava de propriedade em editar/excluir - continuam aqui)"
 echo ""
 echo "Próximos passos:"
 echo "1) Se ainda nao rodou: SQL de prisma/manual-sql/producers_module.sql no Neon"
 echo "2) npx prisma generate"
 echo "3) npm run dev -> confere /producers"
-echo "4) git add . && git commit -m 'feat: crud completo modulo produtores' && git push"
+echo "4) git add . && git commit -m 'fix: auditoria v2 modulo produtores' && git push"
 echo "==================================================================="

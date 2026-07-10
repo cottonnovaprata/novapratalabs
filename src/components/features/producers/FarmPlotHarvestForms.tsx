@@ -66,7 +66,7 @@ export function PlotForm({ initialData, onSubmit, onCancel }: { initialData?: an
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Área (ha)</label>
-          <Input required type="number" step="0.01" value={formData.areaHa} onChange={e => setFormData({ ...formData, areaHa: e.target.value })} />
+          <Input required type="number" step="0.01" min="0.01" value={formData.areaHa} onChange={e => setFormData({ ...formData, areaHa: e.target.value })} />
         </div>
       </div>
       <div className="space-y-2">
@@ -153,11 +153,11 @@ export function HarvestLotForm({ initialData, onSubmit, onCancel }: { initialDat
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Fardos</label>
-          <Input required type="number" value={formData.bales} onChange={e => setFormData({ ...formData, bales: e.target.value })} />
+          <Input required type="number" min="0" value={formData.bales} onChange={e => setFormData({ ...formData, bales: e.target.value })} />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Peso total (kg)</label>
-          <Input required type="number" step="0.01" value={formData.totalWeightKg} onChange={e => setFormData({ ...formData, totalWeightKg: e.target.value })} />
+          <Input required type="number" step="0.01" min="0" value={formData.totalWeightKg} onChange={e => setFormData({ ...formData, totalWeightKg: e.target.value })} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">

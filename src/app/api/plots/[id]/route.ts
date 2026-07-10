@@ -14,7 +14,15 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, areaHa, variety, splitArea, notes, season } = body
+    const { name, areaHa, variety, splitArea, notes, season, producerId } = body
+
+    const existing = await prisma.plot.findUnique({ where: { id }, include: { farm: true } })
+    if (!existing) {
+      return NextResponse.json({ error: "Talhão não encontrado" }, { status: 404 })
+    }
+    if (producerId && existing.farm.producerId !== producerId) {
+      return NextResponse.json({ error: "Talhão não pertence a este produtor" }, { status: 403 })
+    }
 
     const plot = await prisma.plot.update({
       where: { id },
@@ -46,6 +54,17 @@ export async function DELETE(
 
   try {
     const { id } = await params
+    const { searchParams } = new URL(request.url)
+    const producerId = searchParams.get("producerId")
+
+    const existing = await prisma.plot.findUnique({ where: { id }, include: { farm: true } })
+    if (!existing) {
+      return NextResponse.json({ error: "Talhão não encontrado" }, { status: 404 })
+    }
+    if (producerId && existing.farm.producerId !== producerId) {
+      return NextResponse.json({ error: "Talhão não pertence a este produtor" }, { status: 403 })
+    }
+
     await prisma.plot.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {

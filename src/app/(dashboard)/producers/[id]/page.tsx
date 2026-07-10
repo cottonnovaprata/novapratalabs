@@ -31,6 +31,13 @@ function statusVariant(status: string) {
   return "outline"
 }
 
+function lotStatusVariant(status: string) {
+  if (status === "faturado") return "success"
+  if (status === "beneficiado") return "default"
+  if (status === "cancelado") return "destructive"
+  return "ghost"
+}
+
 export default function ProducerDetailPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
@@ -100,13 +107,15 @@ export default function ProducerDetailPage() {
     try {
       const url = farmModal.editing ? `/api/farms/${farmModal.editing.id}` : `/api/producers/${params.id}/farms`
       const method = farmModal.editing ? "PUT" : "POST"
-      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
+      const payload = farmModal.editing ? { ...data, producerId: params.id } : data
+      const res = await fetch(url, { method, body: JSON.stringify(payload), headers: { "Content-Type": "application/json" } })
       if (res.ok) {
         success(farmModal.editing ? "Fazenda atualizada" : "Fazenda criada")
         setFarmModal({ open: false, editing: null })
         fetchProducer()
       } else {
-        toastError("Erro ao salvar fazenda")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar fazenda")
       }
     } catch (error) {
       console.error(error)
@@ -118,7 +127,7 @@ export default function ProducerDetailPage() {
     const ok = await confirmDialog({ title: "Excluir fazenda", message: `Excluir "${farm.name}" e todos os talhões dela?`, destructive: true })
     if (!ok) return
     try {
-      const res = await fetch(`/api/farms/${farm.id}`, { method: "DELETE" })
+      const res = await fetch(`/api/farms/${farm.id}?producerId=${params.id}`, { method: "DELETE" })
       if (res.ok) { success("Fazenda excluída"); fetchProducer() } else { toastError("Erro ao excluir fazenda") }
     } catch (error) {
       console.error(error)
@@ -130,13 +139,15 @@ export default function ProducerDetailPage() {
     try {
       const url = plotModal.editing ? `/api/plots/${plotModal.editing.id}` : `/api/farms/${plotModal.farmId}/plots`
       const method = plotModal.editing ? "PUT" : "POST"
-      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
+      const payload = { ...data, producerId: params.id }
+      const res = await fetch(url, { method, body: JSON.stringify(payload), headers: { "Content-Type": "application/json" } })
       if (res.ok) {
         success(plotModal.editing ? "Talhão atualizado" : "Talhão criado")
         setPlotModal({ open: false, editing: null, farmId: null })
         fetchProducer()
       } else {
-        toastError("Erro ao salvar talhão")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar talhão")
       }
     } catch (error) {
       console.error(error)
@@ -148,7 +159,7 @@ export default function ProducerDetailPage() {
     const ok = await confirmDialog({ title: "Excluir talhão", message: `Excluir o talhão "${plot.name}"?`, destructive: true })
     if (!ok) return
     try {
-      const res = await fetch(`/api/plots/${plot.id}`, { method: "DELETE" })
+      const res = await fetch(`/api/plots/${plot.id}?producerId=${params.id}`, { method: "DELETE" })
       if (res.ok) { success("Talhão excluído"); fetchProducer() } else { toastError("Erro ao excluir talhão") }
     } catch (error) {
       console.error(error)
@@ -160,13 +171,15 @@ export default function ProducerDetailPage() {
     try {
       const url = lotModal.editing ? `/api/harvest-lots/${lotModal.editing.id}` : `/api/producers/${params.id}/harvest-lots`
       const method = lotModal.editing ? "PUT" : "POST"
-      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
+      const payload = lotModal.editing ? { ...data, producerId: params.id } : data
+      const res = await fetch(url, { method, body: JSON.stringify(payload), headers: { "Content-Type": "application/json" } })
       if (res.ok) {
         success(lotModal.editing ? "Lote atualizado" : "Lote lançado")
         setLotModal({ open: false, editing: null })
         fetchProducer()
       } else {
-        toastError("Erro ao salvar lote")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar lote")
       }
     } catch (error) {
       console.error(error)
@@ -178,7 +191,7 @@ export default function ProducerDetailPage() {
     const ok = await confirmDialog({ title: "Excluir lote", message: `Excluir o lote "${lot.blockNumber || lot.id}"?`, destructive: true })
     if (!ok) return
     try {
-      const res = await fetch(`/api/harvest-lots/${lot.id}`, { method: "DELETE" })
+      const res = await fetch(`/api/harvest-lots/${lot.id}?producerId=${params.id}`, { method: "DELETE" })
       if (res.ok) { success("Lote excluído"); fetchProducer() } else { toastError("Erro ao excluir lote") }
     } catch (error) {
       console.error(error)
@@ -210,7 +223,7 @@ export default function ProducerDetailPage() {
   const bales = (producer.harvestLots || []).reduce((acc: number, l: any) => acc + l.bales, 0)
 
   const stats = [
-    { label: "Área total", value: areaTotal, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "Área total", value: areaTotal, decimals: 1, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
     { label: "Fazendas", value: producer.farms?.length || 0, icon: Building2, color: "text-blue-500", bg: "bg-blue-500/10" },
     { label: "Talhões", value: totalPlots, icon: LayoutGrid, color: "text-amber-500", bg: "bg-amber-500/10" },
     { label: "Fardos colhidos", value: bales, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
@@ -230,7 +243,7 @@ export default function ProducerDetailPage() {
             <Edit className="mr-2 h-4 w-4" />
             Editar
           </Button>
-          <Button onClick={handleDeleteProducer} variant="outline" size="sm" style={{ color: "var(--status-error)" }}>
+          <Button onClick={handleDeleteProducer} variant="outline" size="sm" style={{ color: "var(--status-error)" }} aria-label="Excluir produtor">
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -260,7 +273,7 @@ export default function ProducerDetailPage() {
               </div>
               <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>{s.label}</p>
               <div className="text-2xl font-bold mt-1" style={{ letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
-                <AnimatedCounter value={s.value} />{s.suffix || ""}
+                <AnimatedCounter value={s.value} decimals={s.decimals || 0} />{s.suffix || ""}
               </div>
             </CardContent>
           </Card>
@@ -338,10 +351,10 @@ export default function ProducerDetailPage() {
                       <Plus className="mr-1 h-3.5 w-3.5" />
                       Talhão
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFarmModal({ open: true, editing: f })}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFarmModal({ open: true, editing: f })} aria-label={`Editar fazenda ${f.name}`}>
                       <Edit className="h-3.5 w-3.5" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteFarm(f)}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteFarm(f)} aria-label={`Excluir fazenda ${f.name}`}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -366,10 +379,10 @@ export default function ProducerDetailPage() {
                         </td>
                         <td className="py-2.5 text-right">
                           <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setPlotModal({ open: true, editing: t, farmId: f.id })}>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setPlotModal({ open: true, editing: t, farmId: f.id })} aria-label={`Editar talhão ${t.name}`}>
                               <Edit className="h-3.5 w-3.5" />
                             </Button>
-                            <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeletePlot(t)}>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeletePlot(t)} aria-label={`Excluir talhão ${t.name}`}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -418,13 +431,13 @@ export default function ProducerDetailPage() {
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.plot || "-"}</td>
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.bales}</td>
                       <td className="py-2.5" style={{ color: "var(--text-primary)" }}>{l.totalWeightKg}</td>
-                      <td className="py-2.5"><Badge variant="ghost">{l.status}</Badge></td>
+                      <td className="py-2.5"><Badge variant={lotStatusVariant(l.status)}>{l.status}</Badge></td>
                       <td className="py-2.5 text-right">
                         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setLotModal({ open: true, editing: l })}>
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setLotModal({ open: true, editing: l })} aria-label={`Editar lote ${l.blockNumber || l.id}`}>
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteLot(l)}>
+                          <Button size="icon" variant="ghost" className="h-7 w-7" style={{ color: "var(--status-error)" }} onClick={() => handleDeleteLot(l)} aria-label={`Excluir lote ${l.blockNumber || l.id}`}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
