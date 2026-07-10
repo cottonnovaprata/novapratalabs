@@ -30,6 +30,13 @@ const PRIORITY_STYLE: Record<string, string> = {
   CRITICA: "bg-red-500/10 text-red-500 border-red-500/20",
 }
 
+const STATUS_STYLE: Record<string, string> = {
+  ABERTO: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  EM_ANDAMENTO: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+  AGUARDANDO_PECA: "bg-violet-500/10 text-violet-500 border-violet-500/20",
+  CONCLUIDO: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+}
+
 export default function TicketsPage() {
   const confirmDialog = useConfirm()
   const { success, error: toastError } = useToast()
@@ -74,7 +81,8 @@ export default function TicketsPage() {
         success(editingTicket ? "Chamado atualizado" : "Chamado aberto")
         fetchData()
       } else {
-        toastError("Erro ao salvar chamado")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar chamado")
       }
     } catch (error) {
       console.error("Error saving ticket:", error)
@@ -91,7 +99,8 @@ export default function TicketsPage() {
         success("Chamado excluído")
         fetchData()
       } else {
-        toastError("Erro ao excluir chamado")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao excluir chamado")
       }
     } catch (error) {
       console.error("Error deleting ticket:", error)
@@ -199,7 +208,9 @@ export default function TicketsPage() {
                         <Badge className={cn("text-[10px] font-normal py-0 h-4 border", PRIORITY_STYLE[t.priority])}>
                           {t.priority}
                         </Badge>
-                        <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">{t.status}</Badge>
+                        <Badge className={cn("text-[10px] font-normal py-0 h-4 border", STATUS_STYLE[t.status] ?? "bg-zinc-500/10 text-zinc-400 border-zinc-500/20")}>
+                          {t.status}
+                        </Badge>
                         {t.recurring && (
                           <Badge variant="outline" className="text-[10px] font-normal py-0 h-4 text-red-400 border-red-500/30">
                             Recorrente
@@ -216,8 +227,8 @@ export default function TicketsPage() {
                                     ? "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
                                     : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                                   : sla.isBreached
-                                  ? "bg-red-500/10 text-red-500 border-red-500/20"
-                                  : "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                                    ? "bg-red-500/10 text-red-500 border-red-500/20"
+                                    : "bg-blue-500/10 text-blue-500 border-blue-500/20"
                               )}
                             >
                               SLA: {sla.label}
@@ -235,6 +246,7 @@ export default function TicketsPage() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      aria-label="Editar chamado"
                       onClick={() => { setEditingTicket(t); setIsModalOpen(true) }}
                     >
                       <Pencil className="h-4 w-4" />
@@ -243,6 +255,7 @@ export default function TicketsPage() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-destructive hover:text-destructive"
+                      aria-label="Excluir chamado"
                       onClick={() => handleDelete(t.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -270,4 +283,3 @@ export default function TicketsPage() {
     </div>
   )
 }
-
