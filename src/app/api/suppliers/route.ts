@@ -45,6 +45,9 @@ export async function POST(request: Request) {
     return NextResponse.json(supplier)
   } catch (error) {
     console.error("Error creating supplier:", error)
+    if ((error as any).code === "P2002") {
+      return NextResponse.json({ error: "Já existe um fornecedor com este nome" }, { status: 409 })
+    }
     return NextResponse.json({ error: "Failed to create supplier" }, { status: 500 })
   }
 }
