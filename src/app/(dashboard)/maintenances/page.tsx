@@ -1,15 +1,12 @@
 "use client"
 
 import React from "react"
-import { 
-  Wrench, 
-  History, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  MoreHorizontal,
+import {
+  Wrench,
+  History,
+  Clock,
+  CheckCircle2,
   Plus,
-  ArrowRight,
   Loader2,
   Pencil,
   Trash2
@@ -21,6 +18,15 @@ import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
 import { cn } from "@/lib/utils"
 import { MaintenanceForm } from "@/components/features/maintenances/MaintenanceForm"
+import { useToast } from "@/components/toast-provider"
+import { useConfirm } from "@/components/confirm-dialog-provider"
+
+const STATUS_STYLE: Record<string, string> = {
+  PENDENTE: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+  EM_PROGRESSO: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  CONCLUIDO: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+  CANCELADO: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+}
 
 export default function MaintenancePage() {
   const [maintenances, setMaintenances] = React.useState<any[]>([])
@@ -28,6 +34,8 @@ export default function MaintenancePage() {
   const [loading, setLoading] = React.useState(true)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [editingMaint, setEditingMaint] = React.useState<any>(null)
+  const { success, error: toastError } = useToast()
+  const confirmDialog = useConfirm()
 
   const fetchData = React.useCallback(async () => {
     setLoading(true)
@@ -38,7 +46,7 @@ export default function MaintenancePage() {
       ])
       const mData = await mRes.json()
       const aData = await aRes.json()
-      
+
       if (Array.isArray(mData)) setMaintenances(mData)
       if (Array.isArray(aData)) setAssets(aData)
     } catch (error) {
@@ -64,23 +72,41 @@ export default function MaintenancePage() {
       })
 
       if (res.ok) {
+        success(editingMaint ? "Manutenção atualizada com sucesso" : "Manutenção registrada com sucesso")
         setIsModalOpen(false)
         setEditingMaint(null)
         fetchData()
+      } else {
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar manutenção")
       }
     } catch (error) {
       console.error("Error saving maintenance:", error)
+      toastError("Erro ao salvar manutenção")
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Deseja realmente excluir este registro de manutenção?")) return
+    const confirmed = await confirmDialog({
+      title: "Excluir Manutenção",
+      description: "Deseja realmente excluir este registro de manutenção? Esta ação não pode ser desfeita.",
+      confirmLabel: "Excluir",
+      cancelLabel: "Cancelar",
+    })
+    if (!confirmed) return
 
     try {
       const res = await fetch(`/api/maintenances/${id}`, { method: "DELETE" })
-      if (res.ok) fetchData()
+      if (res.ok) {
+        success("Manutenção excluída com sucesso")
+        fetchData()
+      } else {
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao excluir manutenção")
+      }
     } catch (error) {
       console.error("Error deleting maintenance:", error)
+      toastError("Erro ao excluir manutenção")
     }
   }
 
@@ -105,8 +131,8 @@ export default function MaintenancePage() {
         <Card className="bg-amber-500/5 border-amber-500/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-               <Clock className="h-4 w-4 text-amber-500" />
-               Aguardando Início
+              <Clock className="h-4 w-4 text-amber-500" />
+              Aguardando Início
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -117,8 +143,8 @@ export default function MaintenancePage() {
         <Card className="bg-blue-500/5 border-blue-500/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-               <Wrench className="h-4 w-4 text-blue-500" />
-               Em Execução
+              <Wrench className="h-4 w-4 text-blue-500" />
+              Em Execução
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -129,8 +155,8 @@ export default function MaintenancePage() {
         <Card className="bg-emerald-500/5 border-emerald-500/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-               Concluídas
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              Concluídas
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -147,15 +173,15 @@ export default function MaintenancePage() {
             <CardDescription>Eventos de manutenção registrados no sistema.</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <History className="mr-2 h-4 w-4" />}
-             Sincronizar
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <History className="mr-2 h-4 w-4" />}
+            Sincronizar
           </Button>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y relative min-h-[400px]">
             {loading ? (
               <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[1px]">
-                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : maintenances.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground">
@@ -167,7 +193,7 @@ export default function MaintenancePage() {
                   <div className="flex items-center gap-4">
                     <div className={cn(
                       "p-2 rounded-full",
-                      mnt.status === "CONCLUIDO" ? "bg-emerald-500/10 text-emerald-500" : 
+                      mnt.status === "CONCLUIDO" ? "bg-emerald-500/10 text-emerald-500" :
                       mnt.status === "CANCELADO" ? "bg-muted text-muted-foreground" : "bg-amber-500/10 text-amber-500"
                     )}>
                       {mnt.status === "CONCLUIDO" ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
@@ -177,7 +203,9 @@ export default function MaintenancePage() {
                         <p className="font-semibold text-sm">{mnt.problem}</p>
                         <span className="text-muted-foreground opacity-30">•</span>
                         <p className="text-sm font-medium text-primary">{mnt.asset?.name || "Ativo Desconhecido"}</p>
-                        <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">{mnt.status}</Badge>
+                        <Badge variant="outline" className={cn("text-[10px] font-normal py-0 h-4", STATUS_STYLE[mnt.status])}>
+                          {mnt.status}
+                        </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Registrado em {new Date(mnt.startDate).toLocaleDateString()} por {mnt.technician}
@@ -186,23 +214,25 @@ export default function MaintenancePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="hidden md:flex flex-col items-end mr-4">
-                       <p className="text-[10px] uppercase font-bold text-muted-foreground">Custo</p>
-                       <p className="text-xs font-semibold text-emerald-600">
-                         {mnt.cost ? `R$ ${mnt.cost.toFixed(2)}` : "N/A"}
-                       </p>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground">Custo</p>
+                      <p className="text-xs font-semibold text-emerald-600">
+                        {mnt.cost ? `R$ ${mnt.cost.toFixed(2)}` : "N/A"}
+                      </p>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      aria-label="Editar manutenção"
                       onClick={() => { setEditingMaint(mnt); setIsModalOpen(true); }}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-8 w-8 text-destructive hover:text-destructive"
+                      aria-label="Excluir manutenção"
                       onClick={() => handleDelete(mnt.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -215,12 +245,12 @@ export default function MaintenancePage() {
         </CardContent>
       </Card>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={editingMaint ? "Editar Manutenção" : "Nova Manutenção"}
       >
-        <MaintenanceForm 
+        <MaintenanceForm
           initialData={editingMaint}
           assets={assets}
           onCancel={() => setIsModalOpen(false)}
