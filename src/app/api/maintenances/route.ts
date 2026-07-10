@@ -5,7 +5,7 @@ import { getSession } from "@/lib/auth"
 export async function GET(request: Request) {
   const session = await getSession()
   if (!session) {
-    return NextResponse.json({ error: "NÃ£o autorizado" }, { status: 401 })
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
   }
 
   const { searchParams } = new URL(request.url)
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await getSession()
   if (!session) {
-    return NextResponse.json({ error: "NÃ£o autorizado" }, { status: 401 })
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
   }
 
   try {
@@ -51,6 +51,10 @@ export async function POST(request: Request) {
       startDate, 
       endDate 
     } = body
+
+    if (cost !== undefined && cost !== null && cost !== "" && parseFloat(cost) < 0) {
+      return NextResponse.json({ error: "Custo não pode ser negativo" }, { status: 400 })
+    }
 
     // 1. Fetch current asset status to save as previousAssetStatus
     const asset = await prisma.asset.findUnique({
