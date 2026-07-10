@@ -49,7 +49,8 @@ export default function SuppliersPage() {
         success(editingSupplier ? "Fornecedor atualizado" : "Fornecedor cadastrado")
         fetchData()
       } else {
-        toastError("Erro ao salvar fornecedor")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar fornecedor")
       }
     } catch (error) {
       console.error("Error saving supplier:", error)
@@ -66,7 +67,8 @@ export default function SuppliersPage() {
         success("Fornecedor excluído")
         fetchData()
       } else {
-        toastError("Erro ao excluir fornecedor")
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao excluir fornecedor")
       }
     } catch (error) {
       console.error("Error deleting supplier:", error)
@@ -131,10 +133,22 @@ export default function SuppliersPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => { setEditingSupplier(s); setIsModalOpen(true) }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      aria-label="Editar fornecedor"
+                      onClick={() => { setEditingSupplier(s); setIsModalOpen(true) }}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(s.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      aria-label="Excluir fornecedor"
+                      onClick={() => handleDelete(s.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -155,4 +169,3 @@ export default function SuppliersPage() {
     </div>
   )
 }
-
