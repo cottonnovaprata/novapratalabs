@@ -104,6 +104,7 @@ export function MaintenanceForm({ initialData, assets, onSubmit, onCancel }: Mai
           <Input 
             type="number" 
             step="0.01" 
+            min="0"
             placeholder="0,00"
             value={formData.cost} 
             onChange={e => setFormData({...formData, cost: e.target.value})} 
