@@ -8,21 +8,25 @@ export async function PUT(
 ) {
   const session = await getSession()
   if (!session) {
-    return NextResponse.json({ error: "NÃ£o autorizado" }, { status: 401 })
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
   }
 
   try {
     const { id } = await params
     const body = await request.json()
-    const { 
-      problem, 
-      description, 
-      status, 
-      technician, 
-      cost, 
-      startDate, 
-      endDate 
+    const {
+      problem,
+      description,
+      status,
+      technician,
+      cost,
+      startDate,
+      endDate
     } = body
+
+    if (cost !== undefined && cost !== null && cost !== "" && parseFloat(cost) < 0) {
+      return NextResponse.json({ error: "Custo não pode ser negativo" }, { status: 400 })
+    }
 
     // 1. Fetch the maintenance record to get associated asset and previous status
     const maintenance = await prisma.maintenance.findUnique({
@@ -56,7 +60,7 @@ export async function PUT(
           where: { id: maintenance.assetId },
           data: { status: restoreStatus },
         })
-      } 
+      }
       // 4. Logic: If status changed back to PENDENTE or EM_PROGRESSO, make sure asset is MANUTENCAO
       else if (status === "PENDENTE" || status === "EM_PROGRESSO") {
         await tx.asset.update({
@@ -81,7 +85,7 @@ export async function DELETE(
 ) {
   const session = await getSession()
   if (!session) {
-    return NextResponse.json({ error: "NÃ£o autorizado" }, { status: 401 })
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
   }
 
   try {
