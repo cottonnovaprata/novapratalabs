@@ -263,10 +263,10 @@ export default function ProducerDetailPage() {
   const bales = (producer.harvestLots || []).reduce((acc: number, l: any) => acc + l.bales, 0)
 
   const stats = [
-    { label: "Área total", value: areaTotal, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-    { label: "Fazendas", value: producer.farms?.length || 0, icon: Building2, color: "text-blue-500", bg: "bg-blue-500/10" },
-    { label: "Talhões", value: totalPlots, icon: LayoutGrid, color: "text-amber-500", bg: "bg-amber-500/10" },
-    { label: "Fardos colhidos", value: bales, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
+    { label: "Área total", value: areaTotal, decimals: 1, suffix: " ha", icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "Fazendas", value: producer.farms?.length || 0, decimals: 0, icon: Building2, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { label: "Talhões", value: totalPlots, decimals: 0, icon: LayoutGrid, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "Fardos colhidos", value: bales, decimals: 0, icon: Package, color: "text-violet-500", bg: "bg-violet-500/10" },
   ]
 
   return (
@@ -313,7 +313,7 @@ export default function ProducerDetailPage() {
               </div>
               <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>{s.label}</p>
               <div className="text-2xl font-bold mt-1" style={{ letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
-                <AnimatedCounter value={s.value} />{s.suffix || ""}
+                <AnimatedCounter value={s.value} decimals={s.decimals ?? 0} />{s.suffix || ""}
               </div>
             </CardContent>
           </Card>
@@ -571,4 +571,4 @@ export default function ProducerDetailPage() {
       </Modal>
     </div>
   )
-}
+          }
