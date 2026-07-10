@@ -111,9 +111,9 @@ export default function DashboardPage() {
       href: "/assets",
     },
     {
-      title: "Em Manutencao",
+      title: "Em Manutenção",
       value: stats?.maintenanceCount || 0,
-      description: "Chamados tecnicos ativos",
+      description: "Chamados técnicos ativos",
       icon: Wrench,
       color: "text-amber-500",
       bg: "bg-amber-500/10",
@@ -122,7 +122,7 @@ export default function DashboardPage() {
     {
       title: "Colaboradores",
       value: stats?.totalUsers || 0,
-      description: "Usuarios com acesso",
+      description: "Usuários com acesso",
       icon: Users,
       color: "text-emerald-500",
       bg: "bg-emerald-500/10",
@@ -131,7 +131,7 @@ export default function DashboardPage() {
     {
       title: "Alertas",
       value: stats?.alertsCount || 0,
-      description: "Acoes sugeridas",
+      description: "Ações sugeridas",
       icon: AlertCircle,
       color: "text-red-500",
       bg: "bg-red-500/10",
@@ -148,7 +148,7 @@ export default function DashboardPage() {
             Dashboard
           </h1>
           <p className="text-sm mt-2" style={{ color: "var(--text-tertiary)" }}>
-            Visao geral de seus ativos e operacoes
+            Visão geral de seus ativos e operações
           </p>
         </div>
         <Button variant="outline" size="sm" className="w-fit">
@@ -288,7 +288,7 @@ export default function DashboardPage() {
               Ativos Recentes
             </CardTitle>
             <CardDescription style={{ color: "var(--text-tertiary)" }}>
-              Ultimos equipamentos adicionados
+              Últimos equipamentos adicionados
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -335,7 +335,7 @@ export default function DashboardPage() {
               Status dos Ativos
             </CardTitle>
             <CardDescription style={{ color: "var(--text-tertiary)" }}>
-              Distribuicao atual
+              Distribuição atual
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -376,4 +376,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
