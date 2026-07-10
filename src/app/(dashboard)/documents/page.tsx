@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
+import { EmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
 import { DocumentForm } from "@/components/features/documents/DocumentForm"
 import { useConfirm } from "@/components/confirm-dialog-provider"
@@ -30,14 +31,8 @@ export default function DocumentsPage() {
   const fetchData = React.useCallback(async () => {
     setLoading(true)
     try {
-      const [dRes, sRes, aRes] = await Promise.all([
-        fetch("/api/documents"),
-        fetch("/api/suppliers"),
-        fetch("/api/assets"),
-      ])
-      const dData = await dRes.json()
-      const sData = await sRes.json()
-      const aData = await aRes.json()
+      const [dRes, sRes, aRes] = await Promise.all([fetch("/api/documents"), fetch("/api/suppliers"), fetch("/api/assets")])
+      const dData = await dRes.json(); const sData = await sRes.json(); const aData = await aRes.json()
       if (Array.isArray(dData)) setDocuments(dData)
       if (Array.isArray(sData)) setSuppliers(sData)
       if (Array.isArray(aData)) setAssets(aData)
@@ -54,24 +49,15 @@ export default function DocumentsPage() {
     const url = editingDoc ? `/api/documents/${editingDoc.id}` : "/api/documents"
     const method = editingDoc ? "PUT" : "POST"
     try {
-      const res = await fetch(url, {
-        method,
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      })
+      const res = await fetch(url, { method, body: JSON.stringify(data), headers: { "Content-Type": "application/json" } })
       if (res.ok) {
-        setIsModalOpen(false)
-        setEditingDoc(null)
-        success(editingDoc ? "Registro atualizado" : "Registro cadastrado")
-        fetchData()
+        setIsModalOpen(false); setEditingDoc(null)
+        success(editingDoc ? "Registro atualizado" : "Registro cadastrado"); fetchData()
       } else {
         const result = await res.json().catch(() => null)
         toastError(result?.error || "Erro ao salvar registro")
       }
-    } catch (error) {
-      console.error("Error saving document:", error)
-      toastError("Erro ao salvar registro")
-    }
+    } catch { toastError("Erro ao salvar registro") }
   }
 
   async function handleDelete(id: string) {
@@ -79,22 +65,15 @@ export default function DocumentsPage() {
     if (!ok) return
     try {
       const res = await fetch(`/api/documents/${id}`, { method: "DELETE" })
-      if (res.ok) {
-        success("Registro excluído")
-        fetchData()
-      } else {
-        const result = await res.json().catch(() => null)
-        toastError(result?.error || "Erro ao excluir registro")
-      }
-    } catch (error) {
-      console.error("Error deleting document:", error)
-      toastError("Erro ao excluir registro")
-    }
+      if (res.ok) { success("Registro excluído"); fetchData() }
+      else { const r = await res.json().catch(()=>null); toastError(r?.error || "Erro ao excluir") }
+    } catch { toastError("Erro ao excluir registro") }
   }
 
   const expiredCount = documents.filter(d => daysUntil(d.validUntil) < 0).length
   const expiringSoonCount = documents.filter(d => { const days = daysUntil(d.validUntil); return days >= 0 && days <= 60 }).length
   const okCount = documents.filter(d => daysUntil(d.validUntil) > 60).length
+  const openNewDoc = () => { setEditingDoc(null); setIsModalOpen(true) }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -103,48 +82,31 @@ export default function DocumentsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Certificados e Licenças</h1>
           <p className="text-muted-foreground">Controle de vencimento de certificados digitais e licenças de software.</p>
         </div>
-        <Button className="bg-primary shadow-lg shadow-primary/20" onClick={() => { setEditingDoc(null); setIsModalOpen(true) }}>
-          <Plus className="mr-2 h-4 w-4" />
-          Cadastrar
+        <Button className="bg-primary shadow-lg shadow-primary/20" onClick={openNewDoc}>
+          <Plus className="mr-2 h-4 w-4" /> Cadastrar
         </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="bg-red-500/5 border-red-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-500" /> Vencidos
-            </CardTitle>
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{String(expiredCount).padStart(2, '0')}</div></CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-red-500" /> Vencidos</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{String(expiredCount).padStart(2,'0')}</div></CardContent>
         </Card>
         <Card className="bg-amber-500/5 border-amber-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-500" /> Vencendo em 60 dias
-            </CardTitle>
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{String(expiringSoonCount).padStart(2, '0')}</div></CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-500" /> Vencendo em 60 dias</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{String(expiringSoonCount).padStart(2,'0')}</div></CardContent>
         </Card>
         <Card className="bg-emerald-500/5 border-emerald-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Em dia
-            </CardTitle>
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{String(okCount).padStart(2, '0')}</div></CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Em dia</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{String(okCount).padStart(2,'0')}</div></CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Lista</CardTitle>
-            <CardDescription>Ordenado por data de vencimento mais próxima.</CardDescription>
-          </div>
+          <div><CardTitle>Lista</CardTitle><CardDescription>Ordenado por data de vencimento mais próxima.</CardDescription></div>
           <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-            Sincronizar
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />} Sincronizar
           </Button>
         </CardHeader>
         <CardContent className="p-0">
@@ -154,7 +116,12 @@ export default function DocumentsPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : documents.length === 0 ? (
-              <div className="p-12 text-center text-muted-foreground">Nenhum certificado ou licença cadastrado.</div>
+              <EmptyState
+                icon="📄"
+                title="Nenhum certificado ou licença cadastrado"
+                description="Cadastre certificados digitais e licenças de software para monitorar os vencimentos automaticamente."
+                action={<Button onClick={openNewDoc}><Plus className="mr-2 h-4 w-4" />Cadastrar primeiro registro</Button>}
+              />
             ) : (
               documents.map((d) => {
                 const days = daysUntil(d.validUntil)
@@ -162,15 +129,11 @@ export default function DocumentsPage() {
                 return (
                   <div key={d.id} className="p-4 hover:bg-muted/50 transition-colors flex items-center justify-between group">
                     <div className="flex items-center gap-4">
-                      <div className={cn("p-2 rounded-full", statusColor)}>
-                        <FileText className="h-5 w-5" />
-                      </div>
+                      <div className={cn("p-2 rounded-full", statusColor)}><FileText className="h-5 w-5" /></div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold text-sm">{d.title}</p>
-                          <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">
-                            {d.type === "CERTIFICADO" ? "Certificado" : "Licença"}
-                          </Badge>
+                          <Badge variant="outline" className="text-[10px] font-normal py-0 h-4">{d.type === "CERTIFICADO" ? "Certificado" : "Licença"}</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
                           {d.holder} — vence em {new Date(d.validUntil).toLocaleDateString()}
@@ -179,24 +142,10 @@ export default function DocumentsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-primary"
-                        aria-label="Editar certificado/licença"
-                        onClick={() => { setEditingDoc(d); setIsModalOpen(true) }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        aria-label="Excluir certificado/licença"
-                        onClick={() => handleDelete(d.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" aria-label="Editar certificado/licença"
+                        onClick={() => { setEditingDoc(d); setIsModalOpen(true) }}><Pencil className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" aria-label="Excluir certificado/licença"
+                        onClick={() => handleDelete(d.id)}><Trash2 className="h-4 w-4" /></Button>
                     </div>
                   </div>
                 )
@@ -207,13 +156,7 @@ export default function DocumentsPage() {
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingDoc ? "Editar Registro" : "Novo Certificado/Licença"}>
-        <DocumentForm
-          initialData={editingDoc}
-          suppliers={suppliers}
-          assets={assets}
-          onCancel={() => setIsModalOpen(false)}
-          onSubmit={handleCreateOrUpdate}
-        />
+        <DocumentForm initialData={editingDoc} suppliers={suppliers} assets={assets} onCancel={() => setIsModalOpen(false)} onSubmit={handleCreateOrUpdate} />
       </Modal>
     </div>
   )
