@@ -5,16 +5,11 @@ import Link from "next/link"
 import {
   Plus,
   Search,
-  Filter,
-  MoreHorizontal,
   Download,
   Laptop,
   Smartphone,
   Server,
   Monitor,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
   Pencil,
   Trash2,
   Loader2,
@@ -23,12 +18,13 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
 import { Modal } from "@/components/ui/modal"
 import { AssetForm } from "@/components/features/assets/AssetForm"
 import { AssetMaintenanceHistory } from "@/components/features/assets/AssetMaintenanceHistory"
+import { useToast } from "@/components/toast-provider"
+import { useConfirm } from "@/components/confirm-dialog-provider"
 
 export default function AssetsPage() {
   const [assets, setAssets] = React.useState<any[]>([])
@@ -39,6 +35,8 @@ export default function AssetsPage() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [historyAsset, setHistoryAsset] = React.useState<any>(null)
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(false)
+  const { success, error: toastError } = useToast()
+  const confirmDialog = useConfirm()
 
   const fetchData = React.useCallback(async () => {
     setLoading(true)
@@ -49,7 +47,7 @@ export default function AssetsPage() {
       ])
       const assetsData = await assetsRes.json()
       const sectorsData = await sectorsRes.json()
-      
+
       if (Array.isArray(assetsData)) setAssets(assetsData)
       if (Array.isArray(sectorsData)) setSectors(sectorsData)
     } catch (error) {
@@ -75,27 +73,45 @@ export default function AssetsPage() {
       })
 
       if (res.ok) {
+        success(editingAsset ? "Ativo atualizado com sucesso" : "Ativo cadastrado com sucesso")
         setIsModalOpen(false)
         setEditingAsset(null)
         fetchData()
+      } else {
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao salvar ativo")
       }
     } catch (error) {
       console.error("Error saving asset:", error)
+      toastError("Erro ao salvar ativo")
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Deseja realmente excluir este ativo?")) return
+    const confirmed = await confirmDialog({
+      title: "Excluir Ativo",
+      description: "Deseja realmente excluir este ativo? Esta ação não pode ser desfeita.",
+      confirmLabel: "Excluir",
+      cancelLabel: "Cancelar",
+    })
+    if (!confirmed) return
 
     try {
       const res = await fetch(`/api/assets/${id}`, { method: "DELETE" })
-      if (res.ok) fetchData()
+      if (res.ok) {
+        success("Ativo excluído com sucesso")
+        fetchData()
+      } else {
+        const result = await res.json().catch(() => null)
+        toastError(result?.error || "Erro ao excluir ativo")
+      }
     } catch (error) {
       console.error("Error deleting asset:", error)
+      toastError("Erro ao excluir ativo")
     }
   }
 
-  const filteredAssets = assets.filter(asset => 
+  const filteredAssets = assets.filter(asset =>
     asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     asset.tag.toLowerCase().includes(searchTerm.toLowerCase()) ||
     asset.brand.toLowerCase().includes(searchTerm.toLowerCase())
@@ -149,16 +165,16 @@ export default function AssetsPage() {
               </thead>
               <tbody className="[&_tr:last-child]:border-0">
                 {loading ? (
-                   <tr>
-                     <td colSpan={6} className="p-8 text-center">
-                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
-                        <p className="text-sm" style={{color: "var(--text-tertiary)"}}>Carregando...</p>
-                     </td>
-                   </tr>
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
+                      <p className="text-sm" style={{color: "var(--text-tertiary)"}}>Carregando...</p>
+                    </td>
+                  </tr>
                 ) : filteredAssets.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="p-8 text-center" style={{color: "var(--text-tertiary)"}}>
-                       Nenhum ativo encontrado
+                      Nenhum ativo encontrado
                     </td>
                   </tr>
                 ) : filteredAssets.map((asset) => (
@@ -188,41 +204,41 @@ export default function AssetsPage() {
                       </Badge>
                     </td>
                     <td className="p-5 align-middle text-xs hidden md:table-cell" style={{color: "var(--text-secondary)"}}>
-                       {asset.sector?.name || "—"}
+                      {asset.sector?.name || "—"}
                     </td>
                     <td className="p-5 align-middle text-xs font-semibold hidden lg:table-cell" style={{color: "var(--text-secondary)"}}>
-                       {asset.criticality}
+                      {asset.criticality}
                     </td>
                     <td className="p-5 align-middle text-right">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10"
-                            title="Histórico"
-                            onClick={() => { setHistoryAsset(asset); setIsHistoryOpen(true); }}
-                          >
-                            <Wrench className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-zinc-400 hover:text-primary hover:bg-primary/10"
-                            title="Editar"
-                            onClick={() => { setEditingAsset(asset); setIsModalOpen(true); }}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-zinc-400 hover:text-red-400 hover:bg-red-500/10"
-                            title="Deletar"
-                            onClick={() => handleDelete(asset.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                       </div>
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10"
+                          aria-label="Ver histórico de manutenção"
+                          onClick={() => { setHistoryAsset(asset); setIsHistoryOpen(true); }}
+                        >
+                          <Wrench className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-zinc-400 hover:text-primary hover:bg-primary/10"
+                          aria-label="Editar ativo"
+                          onClick={() => { setEditingAsset(asset); setIsModalOpen(true); }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-zinc-400 hover:text-red-400 hover:bg-red-500/10"
+                          aria-label="Excluir ativo"
+                          onClick={() => handleDelete(asset.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -231,13 +247,13 @@ export default function AssetsPage() {
           </div>
         </CardContent>
       </Card>
-      
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title={editingAsset ? "Editar Ativo" : "Novo Ativo"}
       >
-        <AssetForm 
+        <AssetForm
           initialData={editingAsset}
           sectors={sectors}
           onCancel={() => setIsModalOpen(false)}
@@ -245,9 +261,9 @@ export default function AssetsPage() {
         />
       </Modal>
 
-      <Modal 
-        isOpen={isHistoryOpen} 
-        onClose={() => setIsHistoryOpen(false)} 
+      <Modal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
         title={`Histórico - ${historyAsset?.name || "Ativo"}`}
       >
         {historyAsset && <AssetMaintenanceHistory assetId={historyAsset.id} />}
