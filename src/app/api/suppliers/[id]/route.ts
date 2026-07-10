@@ -33,6 +33,9 @@ export async function PUT(
     return NextResponse.json(supplier)
   } catch (error) {
     console.error("Error updating supplier:", error)
+    if ((error as any).code === "P2002") {
+      return NextResponse.json({ error: "Já existe um fornecedor com este nome" }, { status: 409 })
+    }
     return NextResponse.json({ error: "Failed to update supplier" }, { status: 500 })
   }
 }
