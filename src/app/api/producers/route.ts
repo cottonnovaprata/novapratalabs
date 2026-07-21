@@ -31,10 +31,20 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { name, document, stateRegistration, address, phone, email, whatsapp, status, notes } = body
+    const {
+      name, document, stateRegistration, address, phone, email, whatsapp, status, notes,
+      contractNumber, contractedAreaHa, expectedBales, lotCount, blockSequence, hviLab, visualLab,
+    } = body
 
     if (!name) {
       return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
+    }
+
+    const duplicate = await prisma.producer.findFirst({
+      where: { name: { equals: name.trim(), mode: "insensitive" } },
+    })
+    if (duplicate) {
+      return NextResponse.json({ error: `Já existe um produtor cadastrado como "${duplicate.name}"` }, { status: 409 })
     }
 
     const producer = await prisma.producer.create({
@@ -48,6 +58,13 @@ export async function POST(request: Request) {
         whatsapp: whatsapp || null,
         status: status || "ativo",
         notes: notes || null,
+        contractNumber: contractNumber || null,
+        contractedAreaHa: contractedAreaHa ? Number(contractedAreaHa) : null,
+        expectedBales: expectedBales ? Number(expectedBales) : null,
+        lotCount: lotCount ? Number(lotCount) : null,
+        blockSequence: blockSequence || null,
+        hviLab: hviLab || null,
+        visualLab: visualLab || null,
       },
     })
 

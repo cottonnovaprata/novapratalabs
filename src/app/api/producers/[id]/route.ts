@@ -45,7 +45,10 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, document, stateRegistration, address, phone, email, whatsapp, status, notes } = body
+    const {
+      name, document, stateRegistration, address, phone, email, whatsapp, status, notes,
+      contractNumber, contractedAreaHa, expectedBales, lotCount, blockSequence, hviLab, visualLab,
+    } = body
 
     const producer = await prisma.producer.update({
       where: { id },
@@ -59,6 +62,13 @@ export async function PUT(
         whatsapp: whatsapp || null,
         status: status || "ativo",
         notes: notes || null,
+        contractNumber: contractNumber || null,
+        contractedAreaHa: contractedAreaHa ? Number(contractedAreaHa) : null,
+        expectedBales: expectedBales ? Number(expectedBales) : null,
+        lotCount: lotCount ? Number(lotCount) : null,
+        blockSequence: blockSequence || null,
+        hviLab: hviLab || null,
+        visualLab: visualLab || null,
       },
     })
 

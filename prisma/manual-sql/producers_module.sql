@@ -18,6 +18,13 @@ CREATE TABLE IF NOT EXISTS "producers" (
 -- Garante as colunas novas mesmo se a tabela já existia antes (sem IE/endereço)
 ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "stateRegistration" TEXT;
 ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "address" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "contractNumber" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "contractedAreaHa" DOUBLE PRECISION;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "expectedBales" INTEGER;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "lotCount" INTEGER;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "blockSequence" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "hviLab" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "visualLab" TEXT;
 
 CREATE TABLE IF NOT EXISTS "farms" (
   "id" TEXT PRIMARY KEY,

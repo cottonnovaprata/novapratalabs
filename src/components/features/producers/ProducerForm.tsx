@@ -23,6 +23,13 @@ export function ProducerForm({ initialData, onSubmit, onCancel }: ProducerFormPr
     whatsapp: initialData?.whatsapp || "",
     status: initialData?.status || "ativo",
     notes: initialData?.notes || "",
+    contractNumber: initialData?.contractNumber || "",
+    contractedAreaHa: initialData?.contractedAreaHa || "",
+    expectedBales: initialData?.expectedBales || "",
+    lotCount: initialData?.lotCount || "",
+    blockSequence: initialData?.blockSequence || "",
+    hviLab: initialData?.hviLab || "",
+    visualLab: initialData?.visualLab || "",
   })
 
   async function handleSubmit(e: React.FormEvent) {
@@ -86,6 +93,44 @@ export function ProducerForm({ initialData, onSubmit, onCancel }: ProducerFormPr
           <option value="pendente">Pendente</option>
           <option value="inativo">Inativo</option>
         </select>
+      </div>
+
+      <div className="pt-2 border-t border-zinc-800/50">
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-3">Contrato da safra</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Nº do contrato</label>
+            <Input value={formData.contractNumber} onChange={e => setFormData({ ...formData, contractNumber: e.target.value })} placeholder="Ex: 002/2026" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Área contratada (ha)</label>
+            <Input type="number" step="0.01" min="0" value={formData.contractedAreaHa} onChange={e => setFormData({ ...formData, contractedAreaHa: e.target.value })} />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Fardinho (meta de fardos)</label>
+            <Input type="number" min="0" value={formData.expectedBales} onChange={e => setFormData({ ...formData, expectedBales: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Lotes</label>
+            <Input type="number" min="0" value={formData.lotCount} onChange={e => setFormData({ ...formData, lotCount: e.target.value })} />
+          </div>
+        </div>
+        <div className="space-y-2 mt-4">
+          <label className="text-sm font-medium">Sequência de blocos</label>
+          <Input value={formData.blockSequence} onChange={e => setFormData({ ...formData, blockSequence: e.target.value })} placeholder="Ex: 001 A 100" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Laboratório HVI</label>
+            <Input value={formData.hviLab} onChange={e => setFormData({ ...formData, hviLab: e.target.value })} placeholder="Ex: COABRA" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Laboratório Visual</label>
+            <Input value={formData.visualLab} onChange={e => setFormData({ ...formData, visualLab: e.target.value })} placeholder="Ex: DS COTTON" />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2">

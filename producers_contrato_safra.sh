@@ -1,3 +1,306 @@
+#!/bin/bash
+set -e
+echo "==> Módulo Produtores - campos de contrato da safra"
+
+# Adiciona os campos novos no Producer (idempotente)
+python3 << 'PYPATCH'
+path = 'prisma/schema.prisma'
+with open(path, encoding='utf-8') as f:
+    content = f.read()
+
+if 'contractNumber' in content:
+    print('==> schema já tem os campos de contrato, pulando')
+else:
+    old_tail = '  notes             String?\n  createdAt         DateTime @default(now())'
+    new_tail = '''  notes             String?
+  contractNumber    String?
+  contractedAreaHa  Float?
+  expectedBales     Int?
+  lotCount          Int?
+  blockSequence     String?
+  hviLab            String?
+  visualLab         String?
+  createdAt         DateTime @default(now())'''
+    if old_tail in content:
+        content = content.replace(old_tail, new_tail)
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        print('==> campos de contrato adicionados ao model Producer')
+    else:
+        print('==> ATENCAO: bloco esperado nao encontrado no schema, confira manualmente')
+PYPATCH
+
+mkdir -p "prisma/manual-sql"
+cat > "prisma/manual-sql/producers_module.sql" << 'NOVAPRATA_EOF'
+-- Módulo Produtores - safra 2026 (script único, idempotente)
+
+CREATE TABLE IF NOT EXISTS "producers" (
+  "id" TEXT PRIMARY KEY,
+  "name" TEXT NOT NULL,
+  "document" TEXT,
+  "stateRegistration" TEXT,
+  "address" TEXT,
+  "phone" TEXT,
+  "email" TEXT,
+  "whatsapp" TEXT,
+  "status" TEXT NOT NULL DEFAULT 'ativo',
+  "notes" TEXT,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+  "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
+);
+
+-- Garante as colunas novas mesmo se a tabela já existia antes (sem IE/endereço)
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "stateRegistration" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "address" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "contractNumber" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "contractedAreaHa" DOUBLE PRECISION;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "expectedBales" INTEGER;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "lotCount" INTEGER;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "blockSequence" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "hviLab" TEXT;
+ALTER TABLE "producers" ADD COLUMN IF NOT EXISTS "visualLab" TEXT;
+
+CREATE TABLE IF NOT EXISTS "farms" (
+  "id" TEXT PRIMARY KEY,
+  "name" TEXT NOT NULL,
+  "producerId" TEXT NOT NULL REFERENCES "producers"("id") ON DELETE CASCADE,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS "plots" (
+  "id" TEXT PRIMARY KEY,
+  "name" TEXT NOT NULL,
+  "areaHa" DOUBLE PRECISION NOT NULL,
+  "variety" TEXT NOT NULL,
+  "splitArea" BOOLEAN NOT NULL DEFAULT false,
+  "notes" TEXT,
+  "season" TEXT NOT NULL DEFAULT '2026',
+  "farmId" TEXT NOT NULL REFERENCES "farms"("id") ON DELETE CASCADE,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS "harvest_lots" (
+  "id" TEXT PRIMARY KEY,
+  "blockNumber" TEXT,
+  "producerId" TEXT NOT NULL REFERENCES "producers"("id") ON DELETE CASCADE,
+  "plot" TEXT,
+  "harvestDate" TIMESTAMP,
+  "classification" TEXT,
+  "bales" INTEGER NOT NULL DEFAULT 0,
+  "totalWeightKg" DOUBLE PRECISION NOT NULL DEFAULT 0,
+  "status" TEXT NOT NULL DEFAULT 'colhido',
+  "invoiceNumber" TEXT,
+  "notes" TEXT,
+  "season" TEXT NOT NULL DEFAULT '2026',
+  "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+  "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS "producer_documents" (
+  "id" TEXT PRIMARY KEY,
+  "producerId" TEXT NOT NULL REFERENCES "producers"("id") ON DELETE CASCADE,
+  "fileName" TEXT NOT NULL,
+  "mimeType" TEXT NOT NULL,
+  "fileSize" INTEGER NOT NULL,
+  "fileData" TEXT NOT NULL,
+  "uploadedAt" TIMESTAMP NOT NULL DEFAULT now()
+);
+
+-- Limpeza: remove tabelas de uma tentativa antiga (nomes em português), se existirem
+DROP TABLE IF EXISTS "LoteColheita";
+DROP TABLE IF EXISTS "Talhao";
+DROP TABLE IF EXISTS "Fazenda";
+DROP TABLE IF EXISTS "Produtor";
+NOVAPRATA_EOF
+echo "==> prisma/manual-sql/producers_module.sql escrito"
+
+mkdir -p "src/app/api/producers"
+cat > "src/app/api/producers/route.ts" << 'NOVAPRATA_EOF'
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
+
+export async function GET() {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const producers = await prisma.producer.findMany({
+      include: {
+        farms: { include: { plots: true } },
+        harvestLots: true,
+      },
+      orderBy: { name: "asc" },
+    })
+    return NextResponse.json(producers)
+  } catch (error) {
+    console.error("Error fetching producers:", error)
+    return NextResponse.json({ error: "Failed to fetch producers" }, { status: 500 })
+  }
+}
+
+export async function POST(request: Request) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const body = await request.json()
+    const {
+      name, document, stateRegistration, address, phone, email, whatsapp, status, notes,
+      contractNumber, contractedAreaHa, expectedBales, lotCount, blockSequence, hviLab, visualLab,
+    } = body
+
+    if (!name) {
+      return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
+    }
+
+    const duplicate = await prisma.producer.findFirst({
+      where: { name: { equals: name.trim(), mode: "insensitive" } },
+    })
+    if (duplicate) {
+      return NextResponse.json({ error: `Já existe um produtor cadastrado como "${duplicate.name}"` }, { status: 409 })
+    }
+
+    const producer = await prisma.producer.create({
+      data: {
+        name,
+        document: document || null,
+        stateRegistration: stateRegistration || null,
+        address: address || null,
+        phone: phone || null,
+        email: email || null,
+        whatsapp: whatsapp || null,
+        status: status || "ativo",
+        notes: notes || null,
+        contractNumber: contractNumber || null,
+        contractedAreaHa: contractedAreaHa ? Number(contractedAreaHa) : null,
+        expectedBales: expectedBales ? Number(expectedBales) : null,
+        lotCount: lotCount ? Number(lotCount) : null,
+        blockSequence: blockSequence || null,
+        hviLab: hviLab || null,
+        visualLab: visualLab || null,
+      },
+    })
+
+    return NextResponse.json(producer)
+  } catch (error) {
+    console.error("Error creating producer:", error)
+    return NextResponse.json({ error: "Failed to create producer" }, { status: 500 })
+  }
+}
+NOVAPRATA_EOF
+echo "==> src/app/api/producers/route.ts escrito"
+
+mkdir -p "src/app/api/producers/[id]"
+cat > "src/app/api/producers/[id]/route.ts" << 'NOVAPRATA_EOF'
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    const producer = await prisma.producer.findUnique({
+      where: { id },
+      include: {
+        farms: { include: { plots: true } },
+        harvestLots: { orderBy: { createdAt: "desc" } },
+        documents: { orderBy: { uploadedAt: "desc" }, select: { id: true, fileName: true, mimeType: true, fileSize: true, uploadedAt: true } },
+      },
+    })
+
+    if (!producer) {
+      return NextResponse.json({ error: "Produtor não encontrado" }, { status: 404 })
+    }
+
+    return NextResponse.json(producer)
+  } catch (error) {
+    console.error("Error fetching producer:", error)
+    return NextResponse.json({ error: "Failed to fetch producer" }, { status: 500 })
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const {
+      name, document, stateRegistration, address, phone, email, whatsapp, status, notes,
+      contractNumber, contractedAreaHa, expectedBales, lotCount, blockSequence, hviLab, visualLab,
+    } = body
+
+    const producer = await prisma.producer.update({
+      where: { id },
+      data: {
+        name,
+        document: document || null,
+        stateRegistration: stateRegistration || null,
+        address: address || null,
+        phone: phone || null,
+        email: email || null,
+        whatsapp: whatsapp || null,
+        status: status || "ativo",
+        notes: notes || null,
+        contractNumber: contractNumber || null,
+        contractedAreaHa: contractedAreaHa ? Number(contractedAreaHa) : null,
+        expectedBales: expectedBales ? Number(expectedBales) : null,
+        lotCount: lotCount ? Number(lotCount) : null,
+        blockSequence: blockSequence || null,
+        hviLab: hviLab || null,
+        visualLab: visualLab || null,
+      },
+    })
+
+    return NextResponse.json(producer)
+  } catch (error) {
+    console.error("Error updating producer:", error)
+    return NextResponse.json({ error: "Failed to update producer" }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { id } = await params
+    await prisma.producer.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting producer:", error)
+    return NextResponse.json({ error: "Failed to delete producer" }, { status: 500 })
+  }
+}
+NOVAPRATA_EOF
+echo "==> src/app/api/producers/[id]/route.ts escrito"
+
+mkdir -p "src/app/(dashboard)/producers/[id]"
+cat > "src/app/(dashboard)/producers/[id]/page.tsx" << 'NOVAPRATA_EOF'
 "use client"
 
 import React from "react"
@@ -601,3 +904,176 @@ export default function ProducerDetailPage() {
     </div>
   )
           }
+NOVAPRATA_EOF
+echo "==> src/app/(dashboard)/producers/[id]/page.tsx escrito"
+
+mkdir -p "src/components/features/producers"
+cat > "src/components/features/producers/ProducerForm.tsx" << 'NOVAPRATA_EOF'
+"use client"
+
+import * as React from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Loader2 } from "lucide-react"
+
+interface ProducerFormProps {
+  initialData?: any
+  onSubmit: (data: any) => Promise<void>
+  onCancel: () => void
+}
+
+export function ProducerForm({ initialData, onSubmit, onCancel }: ProducerFormProps) {
+  const [loading, setLoading] = React.useState(false)
+  const [formData, setFormData] = React.useState({
+    name: initialData?.name || "",
+    document: initialData?.document || "",
+    stateRegistration: initialData?.stateRegistration || "",
+    address: initialData?.address || "",
+    phone: initialData?.phone || "",
+    email: initialData?.email || "",
+    whatsapp: initialData?.whatsapp || "",
+    status: initialData?.status || "ativo",
+    notes: initialData?.notes || "",
+    contractNumber: initialData?.contractNumber || "",
+    contractedAreaHa: initialData?.contractedAreaHa || "",
+    expectedBales: initialData?.expectedBales || "",
+    lotCount: initialData?.lotCount || "",
+    blockSequence: initialData?.blockSequence || "",
+    hviLab: initialData?.hviLab || "",
+    visualLab: initialData?.visualLab || "",
+  })
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await onSubmit(formData)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Nome</label>
+          <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">CPF/CNPJ</label>
+          <Input value={formData.document} onChange={e => setFormData({ ...formData, document: e.target.value })} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Inscrição Estadual</label>
+          <Input value={formData.stateRegistration} onChange={e => setFormData({ ...formData, stateRegistration: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Endereço</label>
+          <Input value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Telefone</label>
+          <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">WhatsApp</label>
+          <Input value={formData.whatsapp} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">E-mail</label>
+        <Input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Status</label>
+        <select
+          className="flex h-9 w-full rounded-lg border border-zinc-700/50 bg-background px-3 py-2 text-sm"
+          value={formData.status}
+          onChange={e => setFormData({ ...formData, status: e.target.value })}
+        >
+          <option value="ativo">Ativo</option>
+          <option value="pendente">Pendente</option>
+          <option value="inativo">Inativo</option>
+        </select>
+      </div>
+
+      <div className="pt-2 border-t border-zinc-800/50">
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-3">Contrato da safra</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Nº do contrato</label>
+            <Input value={formData.contractNumber} onChange={e => setFormData({ ...formData, contractNumber: e.target.value })} placeholder="Ex: 002/2026" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Área contratada (ha)</label>
+            <Input type="number" step="0.01" min="0" value={formData.contractedAreaHa} onChange={e => setFormData({ ...formData, contractedAreaHa: e.target.value })} />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Fardinho (meta de fardos)</label>
+            <Input type="number" min="0" value={formData.expectedBales} onChange={e => setFormData({ ...formData, expectedBales: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Lotes</label>
+            <Input type="number" min="0" value={formData.lotCount} onChange={e => setFormData({ ...formData, lotCount: e.target.value })} />
+          </div>
+        </div>
+        <div className="space-y-2 mt-4">
+          <label className="text-sm font-medium">Sequência de blocos</label>
+          <Input value={formData.blockSequence} onChange={e => setFormData({ ...formData, blockSequence: e.target.value })} placeholder="Ex: 001 A 100" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Laboratório HVI</label>
+            <Input value={formData.hviLab} onChange={e => setFormData({ ...formData, hviLab: e.target.value })} placeholder="Ex: COABRA" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Laboratório Visual</label>
+            <Input value={formData.visualLab} onChange={e => setFormData({ ...formData, visualLab: e.target.value })} placeholder="Ex: DS COTTON" />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Observações</label>
+        <textarea
+          className="flex w-full rounded-lg border border-zinc-700/50 bg-background px-3 py-2 text-sm min-h-[80px]"
+          value={formData.notes}
+          onChange={e => setFormData({ ...formData, notes: e.target.value })}
+        />
+      </div>
+
+      <div className="flex justify-end gap-3 pt-2 border-t border-zinc-800/50">
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Salvar
+        </Button>
+      </div>
+    </form>
+  )
+}
+NOVAPRATA_EOF
+echo "==> src/components/features/producers/ProducerForm.tsx escrito"
+
+echo ""
+echo "==================================================================="
+echo "PRONTO. Novos campos: contrato, area contratada, fardinho (meta),"
+echo "lotes, sequencia de blocos, laboratorio HVI e Visual."
+echo ""
+echo "Próximos passos:"
+echo "1) Rode prisma/manual-sql/producers_module.sql no Neon"
+echo "2) npx prisma generate"
+echo "3) npm run dev -> confere /producers -> Editar produtor"
+echo "4) git add . && git commit -m 'feat: campos de contrato da safra' && git push"
+echo "==================================================================="

@@ -246,6 +246,13 @@ model Producer {
   whatsapp          String?
   status            String   @default("ativo")
   notes             String?
+  contractNumber    String?
+  contractedAreaHa  Float?
+  expectedBales     Int?
+  lotCount          Int?
+  blockSequence     String?
+  hviLab            String?
+  visualLab         String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
